@@ -1,7 +1,8 @@
 import * as utils from './utils.js'
 
 let canvas_defaults = {
-  uniformScaling: false
+  uniformScaling: false,
+  backgroundColor: 'black',
 }
 
 let defaults = {
@@ -17,8 +18,21 @@ let defaults = {
 export class Annotator {
   constructor(canvas, num_frames) {
     this.canvas = new fabric.Canvas(canvas, canvas_defaults);
-    this.num_frames = num_frames
+    this.num_frames = num_frames;
     this.current_frame = 0;
+
+    this.videoEl = document.getElementById('video');
+    this.source = document.getElementById('currentVid');
+    this.framerate = 15;
+    this.video = new fabric.Image(this.videoEl, {
+      originX: 'left',
+      originY: 'top',
+      objectCaching: false,
+      width: this.canvas.width,
+      height: this.canvas.height,
+    })
+    //this.canvas.add(this.video);
+    this.canvas.setBackgroundImage(this.video)
 
     this.tracks = {};
     this.frames = [];
@@ -37,6 +51,11 @@ export class Annotator {
     Object.keys(frame).forEach((id) => {
       frame[id].set({visible: true})
     })
+
+    // Adding 0.0001 seems to avoid rounding errors
+    this.video.currentTime = this.current_frame / this.framerate + 0.0001
+    // I have NO IDEA why the below is necessary
+    this.video.getElement().play();
   }
 
   new_box(frame_id, track_id, properties={}) {
