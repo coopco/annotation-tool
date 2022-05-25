@@ -56,18 +56,18 @@ function updateUI() {
   document.getElementById('current_frame').textContent = `Frame index: ${annotator.current_frame}/${annotator.num_frames-1}`
 }
 
-function nextFrame() {
+async function nextFrame() {
   if (annotator.current_frame >= annotator.num_frames) return;
-  annotator.set_frame(annotator.current_frame + 1);
+  await annotator.set_frame(annotator.current_frame + 1);
   // Seek ahead in video
   // Load current frame data
   annotator.canvas.renderAll();
   updateUI();
 }
 
-function prevFrame() {
+async function prevFrame() {
   if (annotator.current_frame <= 0) return;
-  annotator.set_frame(annotator.current_frame - 1);
+  await annotator.set_frame(annotator.current_frame - 1);
   // Seek ahead in video
   // Load current frame data
   annotator.canvas.renderAll();

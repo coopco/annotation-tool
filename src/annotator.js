@@ -41,7 +41,7 @@ export class Annotator {
     }
   }
 
-  set_frame(frame_id) {
+  async set_frame(frame_id) {
     let frame = this.frames[this.current_frame]
     Object.keys(frame).forEach((id) => {
       frame[id].set({visible: false})
@@ -53,9 +53,12 @@ export class Annotator {
     })
 
     // Adding 0.0001 seems to avoid rounding errors
-    this.video.currentTime = this.current_frame / this.framerate + 0.0001
-    // I have NO IDEA why the below is necessary
-    this.video.getElement().play();
+    this.videoEl.currentTime = this.current_frame / this.framerate + 0.0001
+    await new Promise((resolve) => {
+      this.videoEl.onseeked = () => {
+        resolve(video);
+      };
+    });
   }
 
   new_box(frame_id, track_id, properties={}) {
