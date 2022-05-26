@@ -41,6 +41,10 @@ export class Annotator {
       this.frames.push({})
     }
     this.prev_selected_tracks = [];
+
+    this.canvas.on('selection:cleared', (o) => this.selection_cleared(o));
+    this.canvas.on('selection:created', (o) => this.selection_created(o));
+    this.canvas.on('selection:updated', (o) => this.selection_updated(o));
   }
 
   async set_frame(frame_id) {
@@ -59,13 +63,16 @@ export class Annotator {
     })
 
     // Select all tracks in current frame that were previously selected
-    // Do something with leftover ones
-    console.log("HERE:")
-    console.log(this.get_objects_by(1, [1, 2]))
-    console.log(this.get_objects_by([1, 2], 1))
-    console.log(this.get_objects_by([1, 2], [1, 2]))
-    console.log(this.get_objects_by([1, 2], [1, 2, 3, 4]))
-    console.log(this.frames);
+    let continued_tracks = this.get_objects_by(this.current_frame, selected)
+    let sel = new fabric.ActiveSelection(continued_tracks, {
+      canvas: this.canvas,
+    });
+    this.canvas.setActiveObject(sel);
+
+    // TODO Select those in prev_selected_tracks as well
+    this.prev_selected_tracks.push(selected);
+    console.log(this.prev_selected_tracks);
+
 
     // Adding 0.0001 seems to avoid rounding errors
     this.videoEl.currentTime = this.current_frame / this.framerate + 0.0001
@@ -98,8 +105,6 @@ export class Annotator {
 
   get_selected_track_ids() {
     let active_objects = this.canvas.getActiveObject();
-    console.log(this.canvas.getActiveObject());
-    console.log(this.get_track_ids());
     if (!active_objects) {
       return []
     } else if (active_objects.hasOwnProperty('track_id')) {
@@ -115,14 +120,38 @@ export class Annotator {
   }
 
   get_new_track_id() {
+    if (this.prev_selected_tracks.length == 1) {
+      return this.prev_selected_tracks[0];
+    }
+
     let track_ids = this.get_track_ids();
     return track_ids.length > 0 ? Math.max(...track_ids)+1 : 1;
   }
 
   get_objects_by(frame_ids, track_ids) {
     let combos = utils.cartesian_product(frame_ids, track_ids);
-    console.log(combos);
     return combos.map(id => this.frames[id[0]][id[1]])
                  .filter(Boolean); // Filters undefined
+  }
+
+  delete_objects_by(frame_ids, track_ids) {
+    let combos = utils.cartesian_product(frame_ids, track_ids);
+    combos.map(id => {
+      this.canvas.remove(this.frames[id[0]][id[1]]);
+      delete this.frames[id[0][id[1]];
+      delete this.tracks[id[1][id[0]];
+    });
+  }
+
+  selection_cleared(o) {
+    this.prev_selected_tracks = [];
+  }
+
+  selection_created(o) {
+    this.prev_selected_tracks = [];
+  }
+
+  selection_updated(o) {
+    this.prev_selected_tracks = [];
   }
 }

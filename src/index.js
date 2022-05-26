@@ -83,7 +83,6 @@ function updateUI() {
 
 async function nextFrame() {
   if (annotator.current_frame >= annotator.num_frames) return;
-  console.log(annotator.get_selected_track_ids());
   await annotator.set_frame(annotator.current_frame + 1);
   // Seek ahead in video
   // Load current frame data
@@ -103,7 +102,6 @@ async function prevFrame() {
 Array.from(document.getElementsByClassName("tool")).forEach((el) => {
   el.addEventListener('click', () => {
     current_tool = el.value;
-    console.log(current_tool);
 
     let selection = current_tool == "add" ? false : true;
     annotator.canvas.set({ selection: selection });
@@ -119,6 +117,22 @@ document.getElementById('btn_next_frame').addEventListener('click', (e) => {
 
 document.getElementById('btn_prev_frame').addEventListener('click', (e) => {
   prevFrame()
+})
+
+document.getElementById('btn_delete_tracks').addEventListener('click', (e) => {
+
+})
+
+document.getElementById('btn_delete_boxes').addEventListener('click', (e) => {
+
+})
+
+document.getElementById('btn_delete_prev').addEventListener('click', (e) => {
+
+})
+
+document.getElementById('btn_delete_next').addEventListener('click', (e) => {
+
 })
 
 
