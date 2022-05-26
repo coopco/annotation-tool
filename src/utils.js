@@ -8,3 +8,10 @@ export function getRandomColor() {
   }
   return color;
 }
+
+// https://www.30secondsofcode.org/js/s/cartesian-product
+export const cartesian_product = (a, b) => {
+  a = typeof(a) == 'object' ? a : [a];
+  b = typeof(b) == 'object' ? b : [b];
+  return a.reduce((p, x) => [...p, ...b.map(y => [x, y])], []);
+}

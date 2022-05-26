@@ -40,9 +40,14 @@ export class Annotator {
     for (let i = 0; i < num_frames; i++) {
       this.frames.push({})
     }
+    this.prev_selected_tracks = [];
   }
 
   async set_frame(frame_id) {
+    // Need to clear selection
+    let selected = this.get_selected_track_ids()
+    this.canvas.discardActiveObject()
+
     let frame = this.frames[this.current_frame]
     Object.keys(frame).forEach((id) => {
       frame[id].set({visible: false})
@@ -52,6 +57,15 @@ export class Annotator {
     Object.keys(frame).forEach((id) => {
       frame[id].set({visible: true})
     })
+
+    // Select all tracks in current frame that were previously selected
+    // Do something with leftover ones
+    console.log("HERE:")
+    console.log(this.get_objects_by(1, [1, 2]))
+    console.log(this.get_objects_by([1, 2], 1))
+    console.log(this.get_objects_by([1, 2], [1, 2]))
+    console.log(this.get_objects_by([1, 2], [1, 2, 3, 4]))
+    console.log(this.frames);
 
     // Adding 0.0001 seems to avoid rounding errors
     this.videoEl.currentTime = this.current_frame / this.framerate + 0.0001
@@ -103,5 +117,12 @@ export class Annotator {
   get_new_track_id() {
     let track_ids = this.get_track_ids();
     return track_ids.length > 0 ? Math.max(...track_ids)+1 : 1;
+  }
+
+  get_objects_by(frame_ids, track_ids) {
+    let combos = utils.cartesian_product(frame_ids, track_ids);
+    console.log(combos);
+    return combos.map(id => this.frames[id[0]][id[1]])
+                 .filter(Boolean); // Filters undefined
   }
 }
