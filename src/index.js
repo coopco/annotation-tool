@@ -7,7 +7,7 @@ let num_frames = 50;
 let is_down, mouse_x, mouse_y;
 let drag_rect, orig_x, orig_y, default_dim; // For when drag-creating new boxes
 
-let new_track_id = 0;
+let selected_track
 
 let annotator = new Annotator('canvas', num_frames);
 let current_tool = "pan"
@@ -20,21 +20,19 @@ annotator.canvas.on('mouse:down', (o) => {
   }
 
   is_down = true;
-  let current_tool = document.querySelector('input[name="tool"]:checked')?.value;
 
   if (current_tool == "add") {
     default_dim = true
     let pointer = annotator.canvas.getPointer(o.e);
     orig_x = pointer.x;
     orig_y = pointer.y;
-    new_track_id += 1;
-    drag_rect = annotator.new_box(annotator.current_frame, new_track_id, {
+    drag_rect = annotator.new_box(annotator.current_frame,
+      annotator.get_new_track_id(), {
       left: orig_x,
       top: orig_y,
       width: pointer.x-orig_x,
       height: pointer.y-orig_y
     })
-    console.log(pointer.x-orig_x);
   }
 })
 
@@ -44,8 +42,6 @@ annotator.canvas.on('mouse:move', (o) => {
   mouse_y = pointer.y
 
   if (!is_down) return;
-
-  let current_tool = document.querySelector('input[name="tool"]:checked')?.value;
 
   if (current_tool == "add") {
     let distance2 = Math.abs(orig_x - mouse_x)**2 + Math.abs(orig_y - mouse_y)**2
@@ -68,7 +64,6 @@ annotator.canvas.on('mouse:move', (o) => {
 annotator.canvas.on('mouse:up', (o) => {
   is_down = false;
 
-  let current_tool = document.querySelector('input[name="tool"]:checked')?.value;
   if (current_tool == "add" && default_dim) {
     let w = defaults['width']
     let h = defaults['height']
@@ -88,6 +83,7 @@ function updateUI() {
 
 async function nextFrame() {
   if (annotator.current_frame >= annotator.num_frames) return;
+  console.log(annotator.get_selected_track_ids());
   await annotator.set_frame(annotator.current_frame + 1);
   // Seek ahead in video
   // Load current frame data
@@ -103,6 +99,19 @@ async function prevFrame() {
   annotator.canvas.renderAll();
   updateUI();
 }
+
+Array.from(document.getElementsByClassName("tool")).forEach((el) => {
+  el.addEventListener('click', () => {
+    current_tool = el.value;
+    console.log(current_tool);
+
+    let selection = current_tool == "add" ? false : true;
+    annotator.canvas.set({ selection: selection });
+
+    annotator.canvas.discardActiveObject();
+    annotator.canvas.renderAll();
+  });
+});
 
 document.getElementById('btn_next_frame').addEventListener('click', (e) => {
   nextFrame()

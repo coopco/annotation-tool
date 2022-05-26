@@ -11,8 +11,9 @@ export let defaults = {
   originY: 'top',
   width: 75,
   height: 75,
-  strokeWidth: 2,
+  strokeWidth: 3,
   strokeUniform: true,
+  selectable: true,
 }
 
 export class Annotator {
@@ -62,7 +63,8 @@ export class Annotator {
   }
 
   new_box(frame_id, track_id, properties={}) {
-    properties = {...defaults, ...properties};
+    properties = {...defaults, ...properties,
+                  track_id: track_id, frame_id: frame_id};
 
     let rect = new fabric.Rect(properties);
 
@@ -78,5 +80,28 @@ export class Annotator {
 
     this.canvas.add(rect);
     return rect;
+  }
+
+  get_selected_track_ids() {
+    let active_objects = this.canvas.getActiveObject();
+    console.log(this.canvas.getActiveObject());
+    console.log(this.get_track_ids());
+    if (!active_objects) {
+      return []
+    } else if (active_objects.hasOwnProperty('track_id')) {
+      return [active_objects.track_id]
+    } else {
+      let track_ids = this.canvas.getActiveObject()._objects.map(o => o.track_id);
+      return track_ids;
+    }
+  }
+  
+  get_track_ids() {
+    return Object.keys(this.tracks);
+  }
+
+  get_new_track_id() {
+    let track_ids = this.get_track_ids();
+    return track_ids.length > 0 ? Math.max(...track_ids)+1 : 1;
   }
 }
