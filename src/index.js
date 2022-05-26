@@ -1,15 +1,16 @@
 // TODO disable selection box while drag-adding a box
 // http://jsfiddle.net/a7mad24/aPLq5/
-import {Annotator} from "./annotator.js"
+import {Annotator, defaults} from "./annotator.js"
 
 let num_frames = 50;
 
 let is_down, mouse_x, mouse_y;
-let drag_rect, orig_x, orig_y; // For when drag-creating new boxes
+let drag_rect, orig_x, orig_y, default_dim; // For when drag-creating new boxes
 
 let new_track_id = 0;
 
 let annotator = new Annotator('canvas', num_frames);
+let current_tool = "pan"
 
 updateUI();
 
@@ -19,16 +20,22 @@ annotator.canvas.on('mouse:down', (o) => {
   }
 
   is_down = true;
-  let pointer = annotator.canvas.getPointer(o.e);
-  orig_x = pointer.x;
-  orig_y = pointer.y;
-  new_track_id += 1;
-  drag_rect = annotator.new_box(annotator.current_frame, new_track_id, {
-    left: orig_x,
-    top: orig_y,
-    width: pointer.x-orig_x,
-    height: pointer.y-orig_y
-  })
+  let current_tool = document.querySelector('input[name="tool"]:checked')?.value;
+
+  if (current_tool == "add") {
+    default_dim = true
+    let pointer = annotator.canvas.getPointer(o.e);
+    orig_x = pointer.x;
+    orig_y = pointer.y;
+    new_track_id += 1;
+    drag_rect = annotator.new_box(annotator.current_frame, new_track_id, {
+      left: orig_x,
+      top: orig_y,
+      width: pointer.x-orig_x,
+      height: pointer.y-orig_y
+    })
+    console.log(pointer.x-orig_x);
+  }
 })
 
 annotator.canvas.on('mouse:move', (o) => {
@@ -38,18 +45,41 @@ annotator.canvas.on('mouse:move', (o) => {
 
   if (!is_down) return;
 
-  drag_rect.set({left: Math.min(orig_x, mouse_x),
-                 top: Math.min(orig_y, mouse_y),
-                 width: Math.abs(orig_x - pointer.x),
-                 height: Math.abs(orig_y - pointer.y),
-                 stroke: 'red'
-  });
+  let current_tool = document.querySelector('input[name="tool"]:checked')?.value;
 
-  annotator.canvas.renderAll();
+  if (current_tool == "add") {
+    let distance2 = Math.abs(orig_x - mouse_x)**2 + Math.abs(orig_y - mouse_y)**2
+    if (distance2 > 200) {
+      default_dim = false
+    }
+
+    if (!default_dim) {
+      drag_rect.set({left: Math.min(orig_x, mouse_x),
+                     top: Math.min(orig_y, mouse_y),
+                     width: Math.abs(orig_x - pointer.x),
+                     height: Math.abs(orig_y - pointer.y)
+      });
+    }
+
+    annotator.canvas.renderAll();
+  }
 })
 
 annotator.canvas.on('mouse:up', (o) => {
   is_down = false;
+
+  let current_tool = document.querySelector('input[name="tool"]:checked')?.value;
+  if (current_tool == "add" && default_dim) {
+    let w = defaults['width']
+    let h = defaults['height']
+    drag_rect.set({left: orig_x - w/2,
+                   top: orig_y - h/2,
+                   width: w,
+                   height: h,
+    });
+
+    annotator.canvas.renderAll();
+  }
 })
 
 function updateUI() {

@@ -5,7 +5,7 @@ let canvas_defaults = {
   backgroundColor: 'black',
 }
 
-let defaults = {
+export let defaults = {
   fill: 'rgba(0,0,0,0)',
   originX: 'left',
   originY: 'top',
@@ -62,16 +62,21 @@ export class Annotator {
   }
 
   new_box(frame_id, track_id, properties={}) {
-    Object.assign(properties, defaults);
+    properties = {...defaults, ...properties};
+
     let rect = new fabric.Rect(properties);
 
     if (!(track_id in this.tracks)) {
-      this.tracks[track_id] = {};
+      this.tracks[track_id] = {
+        stroke: utils.getRandomColor(),
+      };
     }
-    this.tracks[track_id][frame_id] = rect
-    this.frames[frame_id][track_id] = rect
 
-    this.canvas.add(rect)
-    return rect
+    rect.set({stroke: this.tracks[track_id]['stroke']});
+    this.tracks[track_id][frame_id] = rect;
+    this.frames[frame_id][track_id] = rect;
+
+    this.canvas.add(rect);
+    return rect;
   }
 }
