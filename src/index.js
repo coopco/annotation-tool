@@ -1,6 +1,7 @@
 // TODO disable selection box while drag-adding a box
 // http://jsfiddle.net/a7mad24/aPLq5/
 import {Annotator, defaults} from "./annotator.js"
+import * as utils from "./utils.js"
 
 let num_frames = 50;
 
@@ -120,19 +121,23 @@ document.getElementById('btn_prev_frame').addEventListener('click', (e) => {
 })
 
 document.getElementById('btn_delete_tracks').addEventListener('click', (e) => {
-
+  let frame_ids = utils.range(0, annotator.num_frames-1, 1)
+  annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
 })
 
 document.getElementById('btn_delete_boxes').addEventListener('click', (e) => {
-
+  annotator.delete_objects_by(annotator.current_frame,
+    annotator.get_selected_track_ids());
 })
 
 document.getElementById('btn_delete_prev').addEventListener('click', (e) => {
-
+  let frame_ids = utils.range(0, annotator.current_frame-1, 1)
+  annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
 })
 
 document.getElementById('btn_delete_next').addEventListener('click', (e) => {
-
+  let frame_ids = utils.range(annotator.current_frame, annotator.num_frames-1, 1)
+  annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
 })
 
 

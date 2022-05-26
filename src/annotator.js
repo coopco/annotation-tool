@@ -100,6 +100,7 @@ export class Annotator {
     this.frames[frame_id][track_id] = rect;
 
     this.canvas.add(rect);
+    this.canvas.setActiveObject(rect);
     return rect;
   }
 
@@ -136,10 +137,12 @@ export class Annotator {
 
   delete_objects_by(frame_ids, track_ids) {
     let combos = utils.cartesian_product(frame_ids, track_ids);
+    // Fabric.js has drouble removing objects that are selected
+    this.canvas.discardActiveObject();
     combos.map(id => {
       this.canvas.remove(this.frames[id[0]][id[1]]);
-      delete this.frames[id[0][id[1]];
-      delete this.tracks[id[1][id[0]];
+      delete this.frames[id[0]][id[1]];
+      delete this.tracks[id[1]][id[0]];
     });
   }
 
