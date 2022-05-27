@@ -16,6 +16,9 @@ export let defaults = {
   selectable: true,
 }
 
+let is_down, mouse_x, mouse_y;
+let drag_rect, orig_x, orig_y, default_dim; // For when drag-creating new boxes
+
 export class Annotator {
   constructor(canvas, num_frames) {
     this.canvas = new fabric.Canvas(canvas, canvas_defaults);
@@ -42,6 +45,11 @@ export class Annotator {
     }
     this.prev_selected_tracks = [];
 
+    this.current_tool = "pan"
+
+    this.canvas.on('mouse:down', (o) => this.mouse_down(o));
+    this.canvas.on('mouse:move', (o) => this.mouse_move(o));
+    this.canvas.on('mouse:up', (o) => this.mouse_up(o));
     this.canvas.on('selection:cleared', (o) => this.selection_cleared(o));
     this.canvas.on('selection:created', (o) => this.selection_created(o));
     this.canvas.on('selection:updated', (o) => this.selection_updated(o));
@@ -144,6 +152,69 @@ export class Annotator {
       delete this.frames[id[0]][id[1]];
       delete this.tracks[id[1]][id[0]];
     });
+  }
+
+  mouse_down(o) {
+    if (o.target) {
+      return;
+    }
+
+    is_down = true;
+
+    if (this.current_tool == "add") {
+      default_dim = true
+      let pointer = this.canvas.getPointer(o.e);
+      orig_x = pointer.x;
+      orig_y = pointer.y;
+      drag_rect = this.new_box(this.current_frame,
+        this.get_new_track_id(), {
+        left: orig_x,
+        top: orig_y,
+        width: pointer.x-orig_x,
+        height: pointer.y-orig_y
+      })
+    }
+  }
+
+  mouse_move(o) {
+    let pointer = this.canvas.getPointer(o.e);
+    mouse_x = pointer.x
+    mouse_y = pointer.y
+
+    if (!is_down) return;
+
+    if (this.current_tool == "add") {
+      let distance2 = Math.abs(orig_x - mouse_x)**2 + Math.abs(orig_y - mouse_y)**2
+      if (distance2 > 200) {
+        default_dim = false
+      }
+
+      if (!default_dim) {
+        drag_rect.set({left: Math.min(orig_x, mouse_x),
+                       top: Math.min(orig_y, mouse_y),
+                       width: Math.abs(orig_x - pointer.x),
+                       height: Math.abs(orig_y - pointer.y)
+        });
+      }
+
+      this.canvas.renderAll();
+    }
+  }
+
+  mouse_up(o) {
+    is_down = false;
+
+    if (this.current_tool == "add" && default_dim) {
+      let w = defaults['width']
+      let h = defaults['height']
+      drag_rect.set({left: orig_x - w/2,
+                     top: orig_y - h/2,
+                     width: w,
+                     height: h,
+      });
+
+      this.canvas.renderAll();
+    }
   }
 
   selection_cleared(o) {

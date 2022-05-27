@@ -5,78 +5,9 @@ import * as utils from "./utils.js"
 
 let num_frames = 50;
 
-let is_down, mouse_x, mouse_y;
-let drag_rect, orig_x, orig_y, default_dim; // For when drag-creating new boxes
-
-let selected_track
-
 let annotator = new Annotator('canvas', num_frames);
-let current_tool = "pan"
 
 updateUI();
-
-annotator.canvas.on('mouse:down', (o) => {
-  if (o.target) {
-    return;
-  }
-
-  is_down = true;
-
-  if (current_tool == "add") {
-    default_dim = true
-    let pointer = annotator.canvas.getPointer(o.e);
-    orig_x = pointer.x;
-    orig_y = pointer.y;
-    drag_rect = annotator.new_box(annotator.current_frame,
-      annotator.get_new_track_id(), {
-      left: orig_x,
-      top: orig_y,
-      width: pointer.x-orig_x,
-      height: pointer.y-orig_y
-    })
-  }
-})
-
-annotator.canvas.on('mouse:move', (o) => {
-  let pointer = annotator.canvas.getPointer(o.e);
-  mouse_x = pointer.x
-  mouse_y = pointer.y
-
-  if (!is_down) return;
-
-  if (current_tool == "add") {
-    let distance2 = Math.abs(orig_x - mouse_x)**2 + Math.abs(orig_y - mouse_y)**2
-    if (distance2 > 200) {
-      default_dim = false
-    }
-
-    if (!default_dim) {
-      drag_rect.set({left: Math.min(orig_x, mouse_x),
-                     top: Math.min(orig_y, mouse_y),
-                     width: Math.abs(orig_x - pointer.x),
-                     height: Math.abs(orig_y - pointer.y)
-      });
-    }
-
-    annotator.canvas.renderAll();
-  }
-})
-
-annotator.canvas.on('mouse:up', (o) => {
-  is_down = false;
-
-  if (current_tool == "add" && default_dim) {
-    let w = defaults['width']
-    let h = defaults['height']
-    drag_rect.set({left: orig_x - w/2,
-                   top: orig_y - h/2,
-                   width: w,
-                   height: h,
-    });
-
-    annotator.canvas.renderAll();
-  }
-})
 
 function updateUI() {
   document.getElementById('current_frame').textContent = `Frame index: ${annotator.current_frame}/${annotator.num_frames-1}`
@@ -102,9 +33,9 @@ async function prevFrame() {
 
 Array.from(document.getElementsByClassName("tool")).forEach((el) => {
   el.addEventListener('click', () => {
-    current_tool = el.value;
+    annotator.current_tool = el.value;
 
-    let selection = current_tool == "add" ? false : true;
+    let selection = annotator.current_tool == "add" ? false : true;
     annotator.canvas.set({ selection: selection });
 
     annotator.canvas.discardActiveObject();
