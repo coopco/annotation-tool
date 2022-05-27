@@ -50,6 +50,7 @@ export class Annotator {
     this.canvas.on('mouse:down', (o) => this.mouse_down(o));
     this.canvas.on('mouse:move', (o) => this.mouse_move(o));
     this.canvas.on('mouse:up', (o) => this.mouse_up(o));
+    this.canvas.on('mouse:wheel', (o) => this.mouse_wheel(o));
     this.canvas.on('selection:cleared', (o) => this.selection_cleared(o));
     this.canvas.on('selection:created', (o) => this.selection_created(o));
     this.canvas.on('selection:updated', (o) => this.selection_updated(o));
@@ -161,7 +162,15 @@ export class Annotator {
 
     is_down = true;
 
+    // Must use clientX for panning
+    if (o.e.altKey === true) {
+      this.canvas.selection = false;
+      this.canvas.lastPosX = o.e.clientX;
+      this.canvas.lastPosY = o.e.clientY
+    }
+
     if (this.current_tool == "add") {
+      this.canvas.selection = false;
       default_dim = true
       let pointer = this.canvas.getPointer(o.e);
       orig_x = pointer.x;
@@ -177,11 +186,23 @@ export class Annotator {
   }
 
   mouse_move(o) {
+    if (!is_down) return;
+
+    // TODO don't pan past edge of video
+    // Must use clientX for panning
+    if (o.e.altKey == true) {
+      let vpt = this.canvas.viewportTransform
+      vpt[4] += o.e.clientX - this.canvas.lastPosX;
+      vpt[5] += o.e.clientY - this.canvas.lastPosY;
+      this.canvas.requestRenderAll();
+      this.canvas.lastPosX = o.e.clientX;
+      this.canvas.lastPosY = o.e.clientY;
+    }
+
     let pointer = this.canvas.getPointer(o.e);
     mouse_x = pointer.x
     mouse_y = pointer.y
 
-    if (!is_down) return;
 
     if (this.current_tool == "add") {
       let distance2 = Math.abs(orig_x - mouse_x)**2 + Math.abs(orig_y - mouse_y)**2
@@ -204,6 +225,11 @@ export class Annotator {
   mouse_up(o) {
     is_down = false;
 
+    // on mouse up we want to recalculate new interaction
+    // for all objects, so we call setViewportTransform
+    this.canvas.setViewportTransform(this.canvas.viewportTransform);
+    this.canvas.selection = true;
+
     if (this.current_tool == "add" && default_dim) {
       let w = defaults['width']
       let h = defaults['height']
@@ -215,6 +241,18 @@ export class Annotator {
 
       this.canvas.renderAll();
     }
+  }
+
+  mouse_wheel(o) {
+    let delta = o.e.deltaY;
+    let zoom = this.canvas.getZoom();
+    zoom *= 0.99 ** delta;
+    if (zoom > 20) zoom = 20;
+    if (zoom < 0.01) zoom = 0.01;
+    this.canvas.zoomToPoint({ x: o.e.offsetX, y: o.e.offsetY }, zoom);
+    o.e.preventDefault();
+    o.e.stopPropagation();
+    // TODO don't allow zoom out past video size
   }
 
   selection_cleared(o) {
