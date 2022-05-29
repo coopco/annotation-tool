@@ -19,16 +19,6 @@ function updateUI() {
   annotator.canvas.renderAll();
 }
 
-function next_frame() {
-  if (annotator.current_frame >= annotator.num_frames) return;
-  set_frame(annotator.current_frame + 1);
-}
-
-function prev_frame() {
-  if (annotator.current_frame <= 0) return;
-  set_frame(annotator.current_frame - 1);
-}
-
 async function set_frame(frame_id) {
   await annotator.set_frame(frame_id);
   // Seek ahead in video
@@ -45,16 +35,25 @@ Array.from(document.getElementsByClassName("tool")).forEach((el) => {
 
     annotator.canvas.discardActiveObject();
     updateUI();
-    annotator.canvas.renderAll();
   });
 });
 
 document.getElementById('btn_next_frame').addEventListener('click', (e) => {
-  next_frame()
+  if (annotator.current_frame >= annotator.num_frames - 1) return;
+  set_frame(annotator.current_frame + 1);
 })
 
 document.getElementById('btn_prev_frame').addEventListener('click', (e) => {
-  prev_frame()
+  if (annotator.current_frame <= 0) return;
+  set_frame(annotator.current_frame - 1);
+})
+
+document.getElementById('btn_first_frame').addEventListener('click', (e) => {
+  set_frame(0);
+})
+
+document.getElementById('btn_last_frame').addEventListener('click', (e) => {
+  set_frame(annotator.num_frames - 1);
 })
 
 document.getElementById('btn_fps_change').addEventListener('click', (e) => {
