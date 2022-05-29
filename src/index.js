@@ -7,27 +7,32 @@ let num_frames = 50;
 
 let annotator = new Annotator('canvas', num_frames);
 
+let range = document.getElementById('range_scroll');
+let field_fps = document.getElementById('field_fps')
+field_fps.value = annotator.FRAMERATE
+
 updateUI();
 
 function updateUI() {
   document.getElementById('current_frame').textContent = `Frame index: ${annotator.current_frame}/${annotator.num_frames-1}`
+  range.value = annotator.current_frame;
+  annotator.canvas.renderAll();
 }
 
-async function nextFrame() {
+function next_frame() {
   if (annotator.current_frame >= annotator.num_frames) return;
-  await annotator.set_frame(annotator.current_frame + 1);
-  // Seek ahead in video
-  // Load current frame data
-  annotator.canvas.renderAll();
-  updateUI();
+  set_frame(annotator.current_frame + 1);
 }
 
-async function prevFrame() {
+function prev_frame() {
   if (annotator.current_frame <= 0) return;
-  await annotator.set_frame(annotator.current_frame - 1);
+  set_frame(annotator.current_frame - 1);
+}
+
+async function set_frame(frame_id) {
+  await annotator.set_frame(frame_id);
   // Seek ahead in video
   // Load current frame data
-  annotator.canvas.renderAll();
   updateUI();
 }
 
@@ -39,16 +44,34 @@ Array.from(document.getElementsByClassName("tool")).forEach((el) => {
     annotator.canvas.set({ selection: selection });
 
     annotator.canvas.discardActiveObject();
+    updateUI();
     annotator.canvas.renderAll();
   });
 });
 
 document.getElementById('btn_next_frame').addEventListener('click', (e) => {
-  nextFrame()
+  next_frame()
 })
 
 document.getElementById('btn_prev_frame').addEventListener('click', (e) => {
-  prevFrame()
+  prev_frame()
+})
+
+document.getElementById('btn_fps_change').addEventListener('click', (e) => {
+  let fps = Number(document.getElementById('field_fps').value)
+  if (fps == annotator.framerate || fps == 0) {
+    return
+  } else {
+    annotator.framerate = fps
+    annotator.num_frames = Math.round(annotator.videoEl.duration * annotator.framerate)
+    document.getElementById("range_scroll").max = annotator.num_frames - 1
+    updateUI();
+  }
+})
+
+document.getElementById('range_scroll').addEventListener('input', function (e) {
+  let frameId = Number(document.getElementById('range_scroll').value)
+  set_frame(frameId)
 })
 
 document.getElementById('btn_delete_tracks').addEventListener('click', (e) => {
@@ -136,7 +159,7 @@ const onChangeFile = (mediainfo) => {
         // TODO Make sure track[1] is always correct
         annotator.framerate = result.media.track[1].FrameRate
         annotator.num_frames = result.media.track[1].FrameCount
-        //document.getElementById("range_scroll").max = annotator.frameCount - 1
+        document.getElementById("range_scroll").max = annotator.num_frames - 1
         // Not rounding, in case framerate is non integer
         //field_fps.value = annotator.FRAMERATE
       })
