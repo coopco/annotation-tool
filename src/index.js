@@ -56,6 +56,25 @@ document.getElementById('btn_last_frame').addEventListener('click', (e) => {
   set_frame(annotator.num_frames - 1);
 })
 
+document.getElementById('text_field_frame').addEventListener('keydown', function (e) {
+  if(e.key === 'Enter') {
+    let frame_id = Number(document.getElementById('text_field_frame').value)
+    set_frame(frame_id)
+  }
+})
+
+document.getElementById('text_field_frame').addEventListener('input', function (e) {
+  let frame_id = Number(document.getElementById('text_field_frame').value)
+  if (frame_id >= annotator.num_frames || frame_id < 0) return
+  set_frame(frame_id)
+})
+
+document.getElementById('range_scroll').addEventListener('input', function (e) {
+  let frame_id = Number(document.getElementById('range_scroll').value)
+  if (frame_id >= annotator.num_frames || frame_id < 0) return
+  set_frame(frame_id)
+})
+
 document.getElementById('btn_fps_change').addEventListener('click', (e) => {
   let fps = Number(document.getElementById('field_fps').value)
   if (fps == annotator.framerate || fps == 0) {
@@ -66,11 +85,6 @@ document.getElementById('btn_fps_change').addEventListener('click', (e) => {
     document.getElementById("range_scroll").max = annotator.num_frames - 1
     updateUI();
   }
-})
-
-document.getElementById('range_scroll').addEventListener('input', function (e) {
-  let frameId = Number(document.getElementById('range_scroll').value)
-  set_frame(frameId)
 })
 
 document.getElementById('btn_delete_tracks').addEventListener('click', (e) => {
