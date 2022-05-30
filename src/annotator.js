@@ -18,6 +18,10 @@ export let defaults = {
 
 let is_down, mouse_x, mouse_y;
 let drag_rect, orig_x, orig_y, default_dim; // For when drag-creating new boxes
+let field_width = document.getElementById('field_width');
+let field_height = document.getElementById('field_height');
+let field_id = document.getElementById('field_id');
+let field_color = document.getElementById('field_color');
 
 var Box = fabric.util.createClass(fabric.Rect, {
   type: 'box',
@@ -257,8 +261,10 @@ export class Annotator {
         });
       }
 
+      this.update_UI();
       this.canvas.renderAll();
     }
+
   }
 
   mouse_up(o) {
@@ -280,6 +286,7 @@ export class Annotator {
 
       this.canvas.renderAll();
     }
+    this.update_UI();
   }
 
   mouse_wheel(o) {
@@ -296,13 +303,30 @@ export class Annotator {
 
   selection_cleared(o) {
     this.prev_selected_tracks = [];
+    field_id.disabled = true;
   }
 
   selection_created(o) {
     this.prev_selected_tracks = [];
+    this.update_UI();
   }
 
   selection_updated(o) {
     this.prev_selected_tracks = [];
+    this.update_UI();
+  }
+
+  update_UI() {
+    let selected = this.get_selected_track_ids();
+    if (selected.length == 1) {
+      let id = selected[0];
+      field_id.value = id;
+      field_id.disabled = false;
+      field_width.value = this.tracks[id][this.current_frame]['width']
+      field_height.value = this.tracks[id][this.current_frame]['height']
+    } else {
+      // Disable track ID field
+      field_id.disabled = true;
+    }
   }
 }
