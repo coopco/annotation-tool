@@ -19,6 +19,35 @@ export let defaults = {
 let is_down, mouse_x, mouse_y;
 let drag_rect, orig_x, orig_y, default_dim; // For when drag-creating new boxes
 
+var Box = fabric.util.createClass(fabric.Rect, {
+  type: 'box',
+  initialize: function(options) {
+    options || (options = { });
+
+    this.callSuper('initialize', options);
+    this.set('track_id', options.track_id || '');
+    this.set('marked', options.marked || false);
+  },
+
+  toObject: function() {
+    return fabric.util.object.extend(this.callSuper('toObject'), {
+      track_id: this.get('track_id'),
+      marked: this.get('marked')
+    });
+  },
+
+  _render: function(ctx) {
+    this.callSuper('_render', ctx);
+
+    ctx.font = '20px Helvetica';
+    ctx.fillStyle = '#00f';
+    ctx.fillText(this.track_id, -this.width/2, -this.height/2);
+
+    // TODO draw marked mode
+    // TODO draw dot if dot mode
+  }
+});
+
 export class Annotator {
   constructor(canvas, num_frames) {
     this.canvas = new fabric.Canvas(canvas, canvas_defaults);
@@ -80,8 +109,6 @@ export class Annotator {
 
     // TODO Select those in prev_selected_tracks as well
     this.prev_selected_tracks.push(selected);
-    console.log(this.prev_selected_tracks);
-
 
     // Adding 0.0001 seems to avoid rounding errors
     this.videoEl.currentTime = this.current_frame / this.framerate + 0.0001
@@ -96,7 +123,8 @@ export class Annotator {
     properties = {...defaults, ...properties,
                   track_id: track_id, frame_id: frame_id};
 
-    let rect = new fabric.Rect(properties);
+    //let rect = new fabric.Rect(properties);
+    let rect = new Box(properties);
 
     if (!(track_id in this.tracks)) {
       this.tracks[track_id] = {
@@ -114,13 +142,13 @@ export class Annotator {
   }
 
   get_selected_track_ids() {
-    let active_objects = this.canvas.getActiveObject();
+    let active_objects = this.canvas.getActiveObjects();
     if (!active_objects) {
       return []
     } else if (active_objects.hasOwnProperty('track_id')) {
       return [active_objects.track_id]
     } else {
-      let track_ids = this.canvas.getActiveObject()._objects.map(o => o.track_id);
+      let track_ids = active_objects.map(o => o.track_id);
       return track_ids;
     }
   }
@@ -155,6 +183,15 @@ export class Annotator {
     });
   }
 
+  toggle_dot_mode() {
+  }
+
+  toggle_nearby_mode() {
+  }
+
+  toggle_marked_mode() {
+  }
+
   mouse_down(o) {
     if (o.target) {
       return;
@@ -166,7 +203,8 @@ export class Annotator {
     if (o.e.altKey === true) {
       this.canvas.selection = false;
       this.canvas.lastPosX = o.e.clientX;
-      this.canvas.lastPosY = o.e.clientY
+      this.canvas.lastPosY = o.e.clientY;
+      return;
     }
 
     if (this.current_tool == "add") {
@@ -197,6 +235,7 @@ export class Annotator {
       this.canvas.requestRenderAll();
       this.canvas.lastPosX = o.e.clientX;
       this.canvas.lastPosY = o.e.clientY;
+      return;
     }
 
     let pointer = this.canvas.getPointer(o.e);
