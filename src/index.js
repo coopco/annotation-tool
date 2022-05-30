@@ -10,6 +10,8 @@ let annotator = new Annotator('canvas', num_frames);
 let range = document.getElementById('range_scroll');
 let field_fps = document.getElementById('field_fps');
 field_fps.value = annotator.FRAMERATE;
+let btn_play = document.getElementById('btn_play');
+let paused = true;
 let field_id = document.getElementById('field_id');
 
 updateUI();
@@ -25,6 +27,26 @@ async function set_frame(frame_id) {
   // Seek ahead in video
   // Load current frame data
   updateUI();
+}
+
+async function play_video() {
+  // get time
+  let start_time = performance.now();
+
+  if (annotator.current_frame >= annotator.num_frames - 1) return;
+  set_frame(annotator.current_frame + 1);
+
+  let end_time = performance.now();
+
+  //minus get time
+  let diff = end_time - start_time
+  await new Promise(r => setTimeout(r, 2000/annotator.framerate - diff));
+
+  if (paused) {
+    return;
+  } else {
+    await play_video();
+  }
 }
 
 Array.from(document.getElementsByClassName("tool")).forEach((el) => {
@@ -62,6 +84,18 @@ document.getElementById('text_field_frame').addEventListener('keydown', function
     let frame_id = Number(document.getElementById('text_field_frame').value)
     set_frame(frame_id)
   }
+})
+
+document.getElementById('btn_play').addEventListener('click', (e) => {
+  paused = !paused;
+
+  if (playButton.innerHTML == "Play") {
+    button.innerHTML = "Pause"
+  } else {
+    button.innerHTML = "Play"
+  }
+
+  play_video();
 })
 
 document.getElementById('text_field_frame').addEventListener('input', function (e) {
@@ -152,8 +186,8 @@ document.addEventListener('keydown', async function (e) {
         annotator.get_selected_track_ids());
       break;
     case 80: // p
-      //paused = !paused;
-      //await playVideo();
+      paused = !paused;
+      await play_video();
       break;
     default:
       break;
