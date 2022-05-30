@@ -8,8 +8,9 @@ let num_frames = 50;
 let annotator = new Annotator('canvas', num_frames);
 
 let range = document.getElementById('range_scroll');
-let field_fps = document.getElementById('field_fps')
-field_fps.value = annotator.FRAMERATE
+let field_fps = document.getElementById('field_fps');
+field_fps.value = annotator.FRAMERATE;
+let field_id = document.getElementById('field_id');
 
 updateUI();
 
@@ -107,6 +108,57 @@ document.getElementById('btn_delete_next').addEventListener('click', (e) => {
   annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
 })
 
+document.getElementById('field_id').addEventListener('input', (e) => {
+  let track_id = Number(document.getElementById('field_id').value);
+  let selected = annotator.get_selected_track_ids();
+  if (selected.length == 1) {
+    annotator.tracks[selected[0]][annotator.current_frame]['track_id'] = track_id
+    // TODO Update key in annotator.tracks
+    // TODO Update keys in annotator.frames
+    // TODO Update track_ids of other boxes in track
+    // TODO is it necessary for every box to have 'track_id' field?
+  }
+})
+
+// Handle hotkeys
+document.addEventListener('keydown', async function (e) {
+  let keyCode = event.keyCode
+  switch (keyCode) {
+    case 68: // d
+      if (annotator.current_frame >= annotator.num_frames - 1) return;
+      set_frame(annotator.current_frame + 1);
+      break;
+    case 65: // a
+      if (annotator.current_frame <= 0) return;
+      set_frame(annotator.current_frame - 1);
+      break;
+    case 77: // m
+      ////annotator.markSelected()
+      ////updateText()
+      //annotator.mergeSelected()
+      break;
+    case 82: // r
+      let frame_ids = utils.range(0, annotator.num_frames-1, 1)
+      annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
+      break;
+    case 87: // w
+      set_frame(annotator.num_frames - 1);
+      break;
+    case 83: // s
+      set_frame(0);
+      break;
+    case 88: // x
+      annotator.delete_objects_by(annotator.current_frame,
+        annotator.get_selected_track_ids());
+      break;
+    case 80: // p
+      //paused = !paused;
+      //await playVideo();
+      break;
+    default:
+      break;
+  }
+});
 
 document.getElementById('videofile').addEventListener('change', async function (e) {
   URL.revokeObjectURL(annotator.source.src)
