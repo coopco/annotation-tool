@@ -257,11 +257,8 @@ document.getElementById('videofile').addEventListener('change', async function (
   annotator.video.set({width: videoWidth, height: videoHeight});
 
   //timerCallback();
+  annotator.canvas.setZoom(annotator.canvas.width / annotator.video.width);
   updateUI();
-
-  //annotator.frameCount = Math.round(annotator.videoEl.duration * annotator.FRAMERATE)
-  //document.getElementById("range_scroll").max = annotator.frameCount - 1
-  //document.getElementById("range_scroll").style.width = `${videoWidth}px`
 
   console.log('Video is loaded.')
 })

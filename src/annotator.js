@@ -274,8 +274,6 @@ export class Annotator {
     let min_x = -this.video.width * vpt[0] + this.canvas.width
     let min_y = -this.video.height * vpt[3] + this.canvas.height
     // TODO >= or > ?
-    console.log(x);
-    console.log(min_x);
     return x > min_x && y > min_y && x <= max_x && y <= max_y;
   }
 
@@ -342,10 +340,6 @@ export class Annotator {
       if (!target || target.type !== 'box') {
           return;
       }
-      console.log(target.width);
-      console.log(target.height);
-      console.log(target.scaleX);
-      console.log(target.scaleY);
       target.flipX = false;
       target.flipY = false;
       target.width = target.width * target.scaleX;
