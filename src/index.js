@@ -180,6 +180,13 @@ document.getElementById('annotationfile').addEventListener('change', (e) => {
 /*
 * Download annotations
 */
+document.getElementById('btn_track_down').addEventListener('click', (e) => {
+  utils.export_csv_data(annotator, false);
+})
+
+document.getElementById('btn_ant_track_down').addEventListener('click', (e) => {
+  utils.export_csv_data(annotator, true);
+})
 
 /*
 * Hotkeys

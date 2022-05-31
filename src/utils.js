@@ -33,3 +33,38 @@ export function parse_csv_data(raw_data) {
   return csv
 }
 
+export function export_csv_data(annotator, only_marked = false) {
+  let csv_records = [["image_id", "track_id", "x", "y", "w", "h"]]
+  let track_ids = annotator.get_track_ids();
+
+  for (let frame of annotator.frames) {
+    for (let track_id of track_ids) {
+      let box = frame[track_id];
+      console.log(box);
+      if (box && (!only_marked || box.marked)) {
+        csv_records.push([box.frame_id, box.track_id, box.left,
+          box.top, box.width, box.height]);
+      }
+    }
+  }
+
+  let csv_data = csv_records.map(e => e.join(',')).join('\n');
+  saveFile("export.csv", "data:text/csv", new Blob([csv_data],{type:""}));
+
+  function saveFile (name, type, data) {
+    if (data != null && navigator.msSaveBlob)
+      return navigator.msSaveBlob(new Blob([data], { type: type }), name);
+
+    var a = $("<a style='display: none;'/>");
+    var url = window.URL.createObjectURL(new Blob([data], {type: type}));
+    a.attr("href", url);
+    a.attr("download", name);
+    $("body").append(a);
+    a[0].click();
+    setTimeout(function(){  // fixes firefox html removal bug
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    }, 500);
+  }
+}
+
