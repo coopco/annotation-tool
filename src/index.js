@@ -91,10 +91,10 @@ document.getElementById('text_field_frame').addEventListener('keydown', function
 document.getElementById('btn_play').addEventListener('click', (e) => {
   paused = !paused;
 
-  if (document.getElementById('btn_play').innerHTML == "Play") {
-    button.innerHTML = "Pause"
+  if (btn_play.innerHTML == "Play") {
+    btn_play.innerHTML = "Pause"
   } else {
-    button.innerHTML = "Play"
+    btn_play.innerHTML = "Play"
   }
 
   play_video();
