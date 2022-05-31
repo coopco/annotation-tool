@@ -41,9 +41,16 @@ var Box = fabric.util.createClass(fabric.Rect, {
   },
 
   _render: function(ctx) {
+    let zoom = this.canvas.getZoom();
+    // Make stroke width independent of zoom
+    this.set({strokeWidth: defaults['strokeWidth']/zoom});
+
     this.callSuper('_render', ctx);
 
-    ctx.font = '20px Helvetica';
+    // TODO default font size in config somehwere
+    // Make font_size independent of zoom
+    let font_size = 24/this.canvas.getZoom();
+    ctx.font = font_size + 'px Arial';
     ctx.fillStyle = '#00f';
     ctx.fillText(this.track_id, -this.width/2, -this.height/2);
 
@@ -321,12 +328,35 @@ export class Annotator {
   }
 
   mouse_up(o) {
-    is_down = false;
-
     // on mouse up we want to recalculate new interaction
     // for all objects, so we call setViewportTransform
     this.canvas.setViewportTransform(this.canvas.viewportTransform);
     this.canvas.selection = true;
+
+    // Must update width, height, and flip after scaling since
+    // fabric.js resizing only affects target.scaleX and target.scaleY
+    // TODO weird ass bug where scaling sometimes doesnt work
+    // TODO confirmed to be because of below code
+    let target = o.target;
+    if (target && !is_down && target.type == 'box') {
+      if (!target || target.type !== 'box') {
+          return;
+      }
+      console.log(target.width);
+      console.log(target.height);
+      console.log(target.scaleX);
+      console.log(target.scaleY);
+      target.flipX = false;
+      target.flipY = false;
+      target.width = target.width * target.scaleX;
+      target.height = target.height * target.scaleY;
+      target.scaleX = 1;
+      target.scaleY = 1;
+      this.canvas.renderAll();
+      return;
+    }
+
+    is_down = false;
 
     if (this.current_tool == "add" && default_dim) {
       let w = defaults['width']
