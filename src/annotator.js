@@ -259,15 +259,37 @@ export class Annotator {
     }
   }
 
+  is_camera_in_bounds(vpt) {
+    let x = vpt[4];
+    let y = vpt[5];
+    let max_x = 0;
+    let max_y = 0;
+    let min_x = -this.video.width * vpt[0] + this.canvas.width
+    let min_y = -this.video.height * vpt[3] + this.canvas.height
+    // TODO >= or > ?
+    console.log(x);
+    console.log(min_x);
+    return x > min_x && y > min_y && x <= max_x && y <= max_y;
+  }
+
   mouse_move(o) {
     if (!is_down) return;
 
-    // TODO don't pan past edge of video
     // Must use clientX for panning
     if (o.e.altKey == true) {
       let vpt = this.canvas.viewportTransform
-      vpt[4] += o.e.clientX - this.canvas.lastPosX;
-      vpt[5] += o.e.clientY - this.canvas.lastPosY;
+      let dx = o.e.clientX - this.canvas.lastPosX;
+      let dy = o.e.clientY - this.canvas.lastPosY;
+
+      vpt[4] += dx
+      vpt[5] += dy
+
+      // If panning out of bounds
+      if (!this.is_camera_in_bounds(vpt)) {
+        vpt[4] -= dx
+        vpt[5] -= dy
+      }
+
       this.canvas.requestRenderAll();
       this.canvas.lastPosX = o.e.clientX;
       this.canvas.lastPosY = o.e.clientY;
@@ -277,7 +299,6 @@ export class Annotator {
     let pointer = this.canvas.getPointer(o.e);
     mouse_x = pointer.x
     mouse_y = pointer.y
-
 
     if (this.current_tool == "add") {
       let distance2 = Math.abs(orig_x - mouse_x)**2 + Math.abs(orig_y - mouse_y)**2
@@ -325,12 +346,33 @@ export class Annotator {
     let delta = o.e.deltaY;
     let zoom = this.canvas.getZoom();
     zoom *= 0.99 ** delta;
+    let min_zoom = this.canvas.width / this.video.width
     if (zoom > 20) zoom = 20;
-    if (zoom < 0.01) zoom = 0.01;
+    if (zoom < min_zoom) zoom = min_zoom;
+
+    // If video smaller than canvas, cap zoom
+    // TODO make sure zoom increments are restore when zooming back in
+    if (this.canvas.width <= this.video.width * zoom && 
+        this.canvas.height <= this.video.height * zoom) {
+    }
+
     this.canvas.zoomToPoint({ x: o.e.offsetX, y: o.e.offsetY }, zoom);
+
+    // Pan if zooming out of bounds
+    let vpt = this.canvas.viewportTransform
+    if (!this.is_camera_in_bounds(vpt)) {
+      let max_x = 0;
+      let max_y = 0;
+      let min_x = -this.video.width * vpt[0] + this.canvas.width
+      let min_y = -this.video.height * vpt[3] + this.canvas.height
+      let x = Math.min(max_x, Math.max(vpt[4], min_x));
+      let y = Math.min(max_y, Math.max(vpt[5], min_y));
+      vpt[4] = x
+      vpt[5] = y
+    }
+
     o.e.preventDefault();
     o.e.stopPropagation();
-    // TODO don't allow zoom out past video size
   }
 
   selection_cleared(o) {

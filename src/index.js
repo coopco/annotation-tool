@@ -180,6 +180,7 @@ document.getElementById('annotationfile').addEventListener('change', (e) => {
 /*
 * Download annotations
 */
+
 document.getElementById('btn_track_down').addEventListener('click', (e) => {
   utils.export_csv_data(annotator, false);
 })
@@ -253,8 +254,6 @@ document.getElementById('videofile').addEventListener('change', async function (
   // Must set below two lines, otherwise video element doesn't show.
   annotator.videoEl.width = videoWidth;
   annotator.videoEl.height = videoHeight;
-  annotator.canvas.setWidth(videoWidth);
-  annotator.canvas.setHeight(videoHeight);
   annotator.video.set({width: videoWidth, height: videoHeight});
 
   //timerCallback();
