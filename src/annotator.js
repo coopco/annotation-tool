@@ -53,9 +53,9 @@ var Box = fabric.util.createClass(fabric.Rect, {
 });
 
 export class Annotator {
-  constructor(canvas, num_frames) {
+  constructor(canvas) {
     this.canvas = new fabric.Canvas(canvas, canvas_defaults);
-    this.num_frames = num_frames;
+    this.num_frames = 1;
     this.current_frame = 0;
 
     this.videoEl = document.getElementById('video');
@@ -73,7 +73,7 @@ export class Annotator {
 
     this.tracks = {};
     this.frames = [];
-    for (let i = 0; i < num_frames; i++) {
+    for (let i = 0; i < this.num_frames; i++) {
       this.frames.push({})
     }
     this.prev_selected_tracks = [];
@@ -87,6 +87,14 @@ export class Annotator {
     this.canvas.on('selection:cleared', (o) => this.selection_cleared(o));
     this.canvas.on('selection:created', (o) => this.selection_created(o));
     this.canvas.on('selection:updated', (o) => this.selection_updated(o));
+  }
+
+  set_num_frames(num_frames) {
+    this.num_frames = num_frames;
+    this.frames = [];
+    for (let i = 0; i < this.num_frames; i++) {
+      this.frames.push({})
+    }
   }
 
   async set_frame(frame_id) {
@@ -105,6 +113,7 @@ export class Annotator {
     })
 
     // Select all tracks in current frame that were previously selected
+    // TODO get continued_tracks working properly
     let continued_tracks = this.get_objects_by(this.current_frame, selected)
     let sel = new fabric.ActiveSelection(continued_tracks, {
       canvas: this.canvas,
@@ -141,7 +150,6 @@ export class Annotator {
     this.frames[frame_id][track_id] = rect;
 
     this.canvas.add(rect);
-    this.canvas.setActiveObject(rect);
     return rect;
   }
 
@@ -187,6 +195,29 @@ export class Annotator {
     });
   }
 
+  update_annotations(csv_data) {
+    // TODO handle frame_id index out of bounds?
+    let track_ids = csv_data.map(e => e[1]).filter((e, index, arr) => arr.indexOf(e) === index);
+    this.tracks = {};
+    // Reset frames
+    this.set_num_frames(this.num_frames);
+    for (let track_id of track_ids) {
+      let detections = csv_data.filter(e => e[1] === track_id).sort((a, b) => {
+        return (a[0] > b[0]) ? 1 : ((b[0] > a[0]) ? -1 : 0)
+      });
+      for (let detection of detections) {
+        if (detection[0] > this.num_frames-1) continue;
+        this.new_box(detection[0], detection[1], {
+          left:   detection[2],
+          top:    detection[3],
+          width:  detection[4],
+          height: detection[5],
+          visible: detection[0] == this.current_frame
+        });
+      }
+    }
+  }
+
   toggle_dot_mode() {
   }
 
@@ -224,6 +255,7 @@ export class Annotator {
         width: pointer.x-orig_x,
         height: pointer.y-orig_y
       })
+      this.canvas.setActiveObject(drag_rect);
     }
   }
 

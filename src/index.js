@@ -3,9 +3,7 @@
 import {Annotator, defaults} from "./annotator.js"
 import * as utils from "./utils.js"
 
-let num_frames = 50;
-
-let annotator = new Annotator('canvas', num_frames);
+let annotator = new Annotator('canvas');
 
 let range = document.getElementById('range_scroll');
 let field_fps = document.getElementById('field_fps');
@@ -61,6 +59,10 @@ Array.from(document.getElementsByClassName("tool")).forEach((el) => {
   });
 });
 
+/*
+* Player controls
+*/
+
 document.getElementById('btn_next_frame').addEventListener('click', (e) => {
   if (annotator.current_frame >= annotator.num_frames - 1) return;
   set_frame(annotator.current_frame + 1);
@@ -89,7 +91,7 @@ document.getElementById('text_field_frame').addEventListener('keydown', function
 document.getElementById('btn_play').addEventListener('click', (e) => {
   paused = !paused;
 
-  if (playButton.innerHTML == "Play") {
+  if (document.getElementById('btn_play').innerHTML == "Play") {
     button.innerHTML = "Pause"
   } else {
     button.innerHTML = "Play"
@@ -122,6 +124,10 @@ document.getElementById('btn_fps_change').addEventListener('click', (e) => {
   }
 })
 
+/*
+* Delete track options
+*/
+
 document.getElementById('btn_delete_tracks').addEventListener('click', (e) => {
   let frame_ids = utils.range(0, annotator.num_frames-1, 1)
   annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
@@ -142,6 +148,10 @@ document.getElementById('btn_delete_next').addEventListener('click', (e) => {
   annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
 })
 
+/*
+* Options for track properties
+*/
+
 document.getElementById('field_id').addEventListener('input', (e) => {
   let track_id = Number(document.getElementById('field_id').value);
   let selected = annotator.get_selected_track_ids();
@@ -154,7 +164,27 @@ document.getElementById('field_id').addEventListener('input', (e) => {
   }
 })
 
-// Handle hotkeys
+/*
+* Upload annotations
+*/
+
+document.getElementById('annotationfile').addEventListener('change', (e) => {
+  let file = event.target.files[0];
+  let reader = new FileReader();
+  reader.onload = function() {
+    annotator.update_annotations(utils.parse_csv_data(reader.result));
+  }
+  reader.readAsText(file);
+})
+
+/*
+* Download annotations
+*/
+
+/*
+* Hotkeys
+*/
+
 document.addEventListener('keydown', async function (e) {
   let keyCode = event.keyCode
   switch (keyCode) {
@@ -193,6 +223,10 @@ document.addEventListener('keydown', async function (e) {
       break;
   }
 });
+
+/*
+* Upload Video
+*/
 
 document.getElementById('videofile').addEventListener('change', async function (e) {
   URL.revokeObjectURL(annotator.source.src)
@@ -257,8 +291,9 @@ const onChangeFile = (mediainfo) => {
 
         // TODO Make sure track[1] is always correct
         annotator.framerate = result.media.track[1].FrameRate
-        annotator.num_frames = result.media.track[1].FrameCount
+        annotator.set_num_frames(result.media.track[1].FrameCount);
         document.getElementById("range_scroll").max = annotator.num_frames - 1
+        updateUI();
         // Not rounding, in case framerate is non integer
         //field_fps.value = annotator.FRAMERATE
       })
