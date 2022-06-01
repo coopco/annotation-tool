@@ -108,6 +108,7 @@ document.getElementById('btn_fps_change').addEventListener('click', (e) => {
   } else {
     annotator.framerate = fps
     annotator.num_frames = Math.round(annotator.videoEl.duration * annotator.framerate)
+    annotator.reinit();
     document.getElementById("range_scroll").max = annotator.num_frames - 1
     updateUI();
   }
@@ -323,7 +324,8 @@ const onChangeFile = (mediainfo) => {
 
         // TODO Make sure track[1] is always correct
         annotator.framerate = result.media.track[1].FrameRate
-        annotator.set_num_frames(result.media.track[1].FrameCount);
+        annotator.num_frames = result.media.track[1].FrameCount;
+        annotator.reinit();
         document.getElementById("range_scroll").max = annotator.num_frames - 1
         updateUI();
         // Not rounding, in case framerate is non integer

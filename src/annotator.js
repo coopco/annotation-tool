@@ -105,14 +105,6 @@ export class Annotator {
     this.canvas.setBackgroundImage(this.video)
   }
 
-  set_num_frames(num_frames) {
-    this.num_frames = num_frames;
-    this.frames = [];
-    for (let i = 0; i < this.num_frames; i++) {
-      this.frames.push({})
-    }
-  }
-
   async set_frame(frame_id) {
     // Need to clear selection
     let selected = this.get_selected_track_ids()
