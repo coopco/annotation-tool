@@ -143,6 +143,14 @@ export class Annotator {
   }
 
   async set_frame(frame_id) {
+    // Adding 0.0001 seems to avoid rounding errors
+    this.videoEl.currentTime = this.current_frame / this.framerate + 0.0001
+    await new Promise((resolve) => {
+      this.videoEl.onseeked = () => {
+        resolve(video);
+      };
+    });
+
     // Need to clear selection
     let selected = this.get_selected_track_ids()
     this.canvas.discardActiveObject()
@@ -168,13 +176,6 @@ export class Annotator {
     // TODO Select those in prev_selected_tracks as well
     this.prev_selected_tracks.push(selected);
 
-    // Adding 0.0001 seems to avoid rounding errors
-    this.videoEl.currentTime = this.current_frame / this.framerate + 0.0001
-    await new Promise((resolve) => {
-      this.videoEl.onseeked = () => {
-        resolve(video);
-      };
-    });
   }
 
   new_box(frame_id, track_id, properties={}) {
@@ -271,6 +272,37 @@ export class Annotator {
     });
   }
 
+  // TODO call when moving, resizing, etc.
+  // maybe make a annotator.renderAll function?
+  set_nearby_visibility() {
+    let frame = this.frames[this.current_frame];
+    let selected = this.get_selected_track_ids();
+    let selected_boxes = this.get_objects_by(this.current_frame, selected);
+    Object.keys(frame).forEach((id) => {
+      // Get box
+      let box = this.frames[this.current_frame][id];
+      let distance2 = Infinity;
+      for (let box2 of selected_boxes) {
+        // Get distance to box
+        let dx = (box.left + box.width/2) - (box2.left + box2.width/2);
+        let dy = (box.top + box.height/2) - (box2.top + box2.height/2);
+        console.log(box.left);
+        console.log(box2.left);
+        console.log(dx**2 + dy**2);
+        distance2 = Math.min(distance2, dx**2 + dy**2);
+      }
+
+      // If min distance > nearby_distance
+      if (distance2 > nearby_distance**2) {
+        frame[id].set({visible: false});
+      } else {
+        // TODO hmm didn't work
+        frame[id].set({visible: true}); // Needed for when toggling nearby_mode
+      }
+      // Must also call when changing frame
+    })
+  }
+
   toggle_dot_mode() {
     dot_mode = !dot_mode;
     this.set_dirty();
@@ -279,6 +311,7 @@ export class Annotator {
 
   toggle_nearby_mode() {
     nearby_mode = !nearby_mode;
+    if (nearby_mode) this.set_nearby_visibility();
     this.set_dirty();
     this.canvas.renderAll();
   }
@@ -461,20 +494,19 @@ export class Annotator {
   selection_cleared(o) {
     this.prev_selected_tracks = [];
     field_id.disabled = true;
-    // TODO nearby mode set visibility stuff
+    if (nearby_mode) this.set_nearby_visibility();
   }
 
   selection_created(o) {
     this.prev_selected_tracks = [];
     this.update_UI();
-    // TODO nearby mode set visibility stuff
+    if (nearby_mode) this.set_nearby_visibility();
   }
 
   selection_updated(o) {
     this.prev_selected_tracks = [];
     this.update_UI();
-    // TODO nearby mode set visibility stuff
-    // TODO is this event called when changing frame?
+    if (nearby_mode) this.set_nearby_visibility();
   }
 
   update_UI() {
