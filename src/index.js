@@ -170,11 +170,13 @@ document.getElementById('annotationfile').addEventListener('change', (e) => {
 */
 
 document.getElementById('btn_track_down').addEventListener('click', (e) => {
-  utils.export_csv_data(annotator, false);
+  let rotation = document.getElementById('chkbox_rotation').checked;
+  utils.export_csv_data(annotator, false, rotation);
 })
 
 document.getElementById('btn_ant_track_down').addEventListener('click', (e) => {
-  utils.export_csv_data(annotator, true);
+  let rotation = document.getElementById('chkbox_rotation').checked;
+  utils.export_csv_data(annotator, true, rotation);
 })
 
 /*

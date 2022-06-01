@@ -94,6 +94,17 @@ export class Annotator {
     this.canvas.on('selection:updated', (o) => this.selection_updated(o));
   }
 
+  reinit() {
+    this.tracks = [];
+    this.frames = [];
+    for (let i = 0; i < this.num_frames; i++) {
+      this.frames.push({})
+    }
+    this.prev_selected_tracks = [];
+    this.canvas.clear();
+    this.canvas.setBackgroundImage(this.video)
+  }
+
   set_num_frames(num_frames) {
     this.num_frames = num_frames;
     this.frames = [];
@@ -201,11 +212,9 @@ export class Annotator {
   }
 
   update_annotations(csv_data) {
+    this.reinit();
     // TODO handle frame_id index out of bounds?
     let track_ids = csv_data.map(e => e[1]).filter((e, index, arr) => arr.indexOf(e) === index);
-    this.tracks = {};
-    // Reset frames
-    this.set_num_frames(this.num_frames);
     for (let track_id of track_ids) {
       let detections = csv_data.filter(e => e[1] === track_id).sort((a, b) => {
         return (a[0] > b[0]) ? 1 : ((b[0] > a[0]) ? -1 : 0)
@@ -217,6 +226,7 @@ export class Annotator {
           top:    detection[3],
           width:  detection[4],
           height: detection[5],
+          angle: detection[6] || 0,
           visible: detection[0] == this.current_frame
         });
       }
