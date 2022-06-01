@@ -341,7 +341,7 @@ export class Annotator {
       return;
     }
 
-    if (o.e.ctrlKey) {
+    if (o.e.ctrlKey || o.e.shiftKey) {
       this.canvas.selection = false;
       default_dim = true
       let pointer = this.canvas.getPointer(o.e);
@@ -397,7 +397,7 @@ export class Annotator {
     mouse_x = pointer.x
     mouse_y = pointer.y
 
-    if (o.e.ctrlKey) {
+    if (o.e.ctrlKey || o.e.shiftKey) {
       let distance2 = Math.abs(orig_x - mouse_x)**2 + Math.abs(orig_y - mouse_y)**2
       if (distance2 > 200) {
         default_dim = false
@@ -446,7 +446,7 @@ export class Annotator {
 
     is_down = false;
 
-    if (o.e.ctrlKey && default_dim) {
+    if ((o.e.ctrlKey || o.e.shiftKey) && default_dim) {
       let w = defaults['width']
       let h = defaults['height']
       drag_rect.set({left: orig_x - w/2,
