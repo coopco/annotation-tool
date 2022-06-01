@@ -438,6 +438,8 @@ export class Annotator {
       target.height = target.height * target.scaleY;
       target.scaleX = 1;
       target.scaleY = 1;
+
+      this.set_dirty();
       this.canvas.renderAll();
       return;
     }
