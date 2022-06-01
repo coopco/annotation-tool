@@ -27,8 +27,6 @@ function updateUI() {
 
 async function set_frame(frame_id) {
   await annotator.set_frame(frame_id);
-  // Seek ahead in video
-  // Load current frame data
   updateUI();
 }
 
@@ -218,6 +216,7 @@ document.getElementById('btn_mark_tracks').addEventListener('click', (e) => {
 
   annotator.set_dirty();
   annotator.canvas.renderAll();
+  annotator.update_UI();
   // TODO update text
 });
 

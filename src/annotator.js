@@ -22,6 +22,7 @@ let drag_rect, orig_x, orig_y, default_dim; // For when drag-creating new boxes
 let field_width = document.getElementById('field_width');
 let field_height = document.getElementById('field_height');
 let field_id = document.getElementById('field_id');
+let p_state = document.getElementById('p_state');
 
 // Plotting options
 let dot_mode = false;
@@ -410,11 +411,8 @@ export class Annotator {
                        height: Math.abs(orig_y - pointer.y)
         });
       }
-
-      this.update_UI();
       this.canvas.renderAll();
     }
-
   }
 
   mouse_up(o) {
@@ -495,6 +493,7 @@ export class Annotator {
 
   selection_cleared(o) {
     this.prev_selected_tracks = [];
+    this.update_UI();
     field_id.disabled = true;
     if (nearby_mode) this.set_nearby_visibility();
   }
@@ -523,5 +522,19 @@ export class Annotator {
       // Disable track ID field
       field_id.disabled = true;
     }
+
+    // Update text
+    // TODO include prev_selected_tracks
+    let track_text = selected.map(id => {
+      // For some reason, isNaN checks if a string is (not) a number
+      let frame_ids = Object.keys(this.tracks[id]).filter(key => !isNaN(key));
+      let first_frame = Math.min(...frame_ids);
+      let last_frame = Math.max(...frame_ids);
+      return `ID: ${id}, Frames ${first_frame}-${last_frame}`
+    })
+    p_state.textContent = `Selected Tracks:\n ${track_text.join('\n ')}`
+    let marked = this.get_track_ids().filter(e => this.tracks[e].marked)
+    console.log(marked);
+    p_state.textContent = p_state.textContent + `\n\nMarked Tracks:\n ${marked.join(', ')}`
   }
 }
