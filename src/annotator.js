@@ -14,6 +14,7 @@ export let defaults = {
   strokeWidth: 3,
   strokeUniform: true,
   selectable: true,
+  marked: false,
 }
 
 let is_down, mouse_x, mouse_y;
@@ -21,7 +22,13 @@ let drag_rect, orig_x, orig_y, default_dim; // For when drag-creating new boxes
 let field_width = document.getElementById('field_width');
 let field_height = document.getElementById('field_height');
 let field_id = document.getElementById('field_id');
-let field_color = document.getElementById('field_color');
+
+// Plotting options
+let dot_mode = false;
+let nearby_mode = false;
+let nearby_distance = 50;
+let mark_mode = false;
+let interpolation = false;
 
 var Box = fabric.util.createClass(fabric.Rect, {
   type: 'box',
@@ -45,17 +52,47 @@ var Box = fabric.util.createClass(fabric.Rect, {
     // Make stroke width independent of zoom
     this.set({strokeWidth: defaults['strokeWidth']/zoom});
 
-    this.callSuper('_render', ctx);
+    // Only draw marked boxes in mark_mode
+    if (mark_mode && !this.marked) {
+      return;
+    }
 
-    // TODO default font size in config somehwere
-    // Make font_size independent of zoom
-    let font_size = 24/this.canvas.getZoom();
-    ctx.font = font_size + 'px Arial';
-    ctx.fillStyle = '#00f';
-    ctx.fillText(this.track_id, -this.width/2, -this.height/2);
+    if (dot_mode) {
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, 2*Math.PI, false);
+      ctx.fillStyle = this.stroke;
+      ctx.fill();
 
-    // TODO draw marked mode
-    // TODO draw dot if dot mode
+      // Indicate if box is marked
+      if (this.marked) {
+        ctx.beginPath();
+        ctx.arc(0, 0, 2, 0, 2*Math.PI, false);
+        ctx.fillStyle = "red";
+        ctx.fill();
+      }
+    } else if (!dot_mode || this.selected) {
+      // Draw rect
+      this.callSuper('_render', ctx);
+
+      // Indicate if box is marked
+      if (this.marked) {
+        ctx.beginPath();
+        ctx.lineWidth = 2/zoom;
+        ctx.strokeStyle = "red";
+        ctx.moveTo(this.width*4/10, -this.height/2);
+        ctx.lineTo(this.width/2, -this.height/2);
+        ctx.lineTo(this.width/2, -this.height*4/10);
+        ctx.stroke()
+      }
+
+      // TODO default font size in config somehwere
+      // Draw label
+      // Make font_size independent of zoom
+      let font_size = 24/zoom;
+      ctx.font = font_size + 'px Arial';
+      ctx.fillStyle = '#00f';
+      ctx.fillText(this.track_id, -this.width/2, -this.height/2);
+    }
   }
 });
 
@@ -225,13 +262,35 @@ export class Annotator {
     }
   }
 
+  set_dirty() {
+    let range = utils.range(0, this.num_frames-1, 1);
+    let track_ids = this.get_track_ids();
+
+    this.get_objects_by(range, track_ids).forEach(box => {
+      box.dirty = true;
+    });
+  }
+
   toggle_dot_mode() {
+    dot_mode = !dot_mode;
+    this.set_dirty();
+    this.canvas.renderAll();
   }
 
   toggle_nearby_mode() {
+    nearby_mode = !nearby_mode;
+    this.set_dirty();
+    this.canvas.renderAll();
   }
 
-  toggle_marked_mode() {
+  toggle_mark_mode() {
+    mark_mode = !mark_mode;
+    this.set_dirty();
+    this.canvas.renderAll();
+  }
+
+  toggle_interpolation() {
+    interpolation = !interpolation;
   }
 
   mouse_down(o) {
@@ -402,16 +461,20 @@ export class Annotator {
   selection_cleared(o) {
     this.prev_selected_tracks = [];
     field_id.disabled = true;
+    // TODO nearby mode set visibility stuff
   }
 
   selection_created(o) {
     this.prev_selected_tracks = [];
     this.update_UI();
+    // TODO nearby mode set visibility stuff
   }
 
   selection_updated(o) {
     this.prev_selected_tracks = [];
     this.update_UI();
+    // TODO nearby mode set visibility stuff
+    // TODO is this event called when changing frame?
   }
 
   update_UI() {

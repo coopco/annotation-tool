@@ -12,6 +12,10 @@ let btn_play = document.getElementById('btn_play');
 let paused = true;
 let field_id = document.getElementById('field_id');
 let field_color = document.getElementById('field_color');
+document.getElementById('chkbox_dot_mode').checked = false;
+document.getElementById('chkbox_mark_mode').checked = false;
+document.getElementById('chkbox_show_mode').checked = false;
+document.getElementById('chkbox_inter_mode').checked = false;
 
 updateUI();
 
@@ -190,6 +194,69 @@ document.getElementById('field_color').addEventListener('input', (e) => {
   });
 
   annotator.canvas.renderAll();
+})
+
+/*
+* Options for plotting
+*/
+
+document.getElementById('btn_delete_tracks').addEventListener('click', (e) => {
+  let frame_ids = utils.range(0, annotator.num_frames-1, 1);
+  annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
+})
+
+document.getElementById('btn_mark_tracks').addEventListener('click', (e) => {
+  let frame_ids = utils.range(0, annotator.num_frames-1, 1);
+  let track_ids = annotator.get_selected_track_ids();
+  let boxes = annotator.get_objects_by(frame_ids, track_ids);
+  boxes.forEach(b => {
+    b.marked = !b.marked; // Works if undefined
+  });
+  track_ids.forEach(id => {
+    annotator.tracks[id].marked = !annotator.tracks[id].marked;
+  });
+
+  annotator.set_dirty();
+  annotator.canvas.renderAll();
+  // TODO update text
+});
+
+document.getElementById('btn_clear_marked').addEventListener('click', (e) => {
+  let frame_ids = utils.range(0, annotator.num_frames-1, 1);
+  let track_ids = annotator.get_track_ids();
+  let boxes = annotator.get_objects_by(frame_ids, track_ids);
+  boxes.forEach(b => {
+    b.marked = false;
+  });
+  track_ids.forEach(id => {
+    annotator.tracks[id].marked = false;
+  });
+
+  annotator.set_dirty();
+  annotator.canvas.renderAll();
+  // TODO update text
+});
+
+document.getElementById('chkbox_dot_mode').addEventListener('change', (e) => {
+  annotator.toggle_dot_mode()
+})
+
+document.getElementById('chkbox_show_mode').addEventListener('change', (e) => {
+  annotator.toggle_nearby_mode()
+})
+
+document.getElementById('range_distance').addEventListener('input', (e) => {
+  let dist = Number(document.getElementById('range_distance').value)
+  document.getElementById('label_range_distance').innerHTML = `Distance (${dist}):`
+  annotator.nearbyDistance = dist
+})
+
+document.getElementById('chkbox_mark_mode').addEventListener('change', (e) => {
+  annotator.toggle_mark_mode()
+})
+
+document.getElementById('chkbox_inter_mode').addEventListener('change', (e) => {
+  annotator.toggle_interpolation()
 })
 
 /*
