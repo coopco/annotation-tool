@@ -11,6 +11,7 @@ field_fps.value = annotator.FRAMERATE;
 let btn_play = document.getElementById('btn_play');
 let paused = true;
 let field_id = document.getElementById('field_id');
+let field_color = document.getElementById('field_color');
 
 updateUI();
 
@@ -150,6 +151,21 @@ document.getElementById('field_id').addEventListener('input', (e) => {
     // TODO Update track_ids of other boxes in track
     // TODO is it necessary for every box to have 'track_id' field?
   }
+})
+
+document.getElementById('field_color').addEventListener('input', (e) => {
+  let value = String(field_color.value)
+  let range = utils.range(0, annotator.num_frames-1, 1)
+  let selected = annotator.get_selected_track_ids();
+
+  selected.forEach(t => {
+    annotator.tracks[t].stroke = value;
+  });
+  annotator.get_objects_by(range, selected).forEach(r => {
+    r.set({stroke: value});
+  });
+
+  annotator.canvas.renderAll();
 })
 
 /*
