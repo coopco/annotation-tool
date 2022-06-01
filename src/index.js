@@ -143,14 +143,37 @@ document.getElementById('btn_delete_next').addEventListener('click', (e) => {
 
 document.getElementById('field_id').addEventListener('input', (e) => {
   let track_id = Number(document.getElementById('field_id').value);
-  let selected = annotator.get_selected_track_ids();
-  if (selected.length == 1) {
-    annotator.tracks[selected[0]][annotator.current_frame]['track_id'] = track_id
-    // TODO Update key in annotator.tracks
-    // TODO Update keys in annotator.frames
-    // TODO Update track_ids of other boxes in track
-    // TODO is it necessary for every box to have 'track_id' field?
+  // We do not want this function to be alternative way to merge tracks
+  if (track_id in annotator.tracks &&
+      annotator.current_frame in annotator.tracks[track_id]) {
+    return;
   }
+  let selected = annotator.get_selected_track_ids();
+
+  if (selected.length == 1) {
+    let old_id = selected[0]
+    annotator.tracks[old_id][annotator.current_frame]['track_id'] = track_id
+    let range = utils.range(0, annotator.num_frames-1, 1);
+
+    // Update track_ids of all boxes in track
+    // TODO is it necessary for every box to have 'track_id' field?
+    annotator.get_objects_by(range, selected[0]).forEach(r => {
+      r.set({track_id: track_id});
+      r.dirty = true; // To update box label
+    });
+
+    // Update keys in annotator.frames
+    annotator.frames.forEach(frame => {
+      frame[track_id] = frame[old_id];
+      delete frame[old_id];
+    });
+
+    // Update key in annotator.tracks
+    annotator.tracks[track_id] = annotator.tracks[old_id];
+    delete annotator.tracks[old_id];
+  }
+
+  annotator.canvas.renderAll();
 })
 
 document.getElementById('field_color').addEventListener('input', (e) => {
