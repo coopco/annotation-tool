@@ -47,18 +47,6 @@ async function play_video() {
   }
 }
 
-Array.from(document.getElementsByClassName("tool")).forEach((el) => {
-  el.addEventListener('click', () => {
-    annotator.current_tool = el.value;
-
-    let selection = annotator.current_tool == "add" ? false : true;
-    annotator.canvas.set({ selection: selection });
-
-    annotator.canvas.discardActiveObject();
-    updateUI();
-  });
-});
-
 /*
 * Player controls
 */

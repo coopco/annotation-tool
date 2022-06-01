@@ -85,8 +85,6 @@ export class Annotator {
     }
     this.prev_selected_tracks = [];
 
-    this.current_tool = "pan"
-
     this.canvas.on('mouse:down', (o) => this.mouse_down(o));
     this.canvas.on('mouse:move', (o) => this.mouse_move(o));
     this.canvas.on('mouse:up', (o) => this.mouse_up(o));
@@ -242,14 +240,14 @@ export class Annotator {
     is_down = true;
 
     // Must use clientX for panning
-    if (o.e.altKey === true) {
+    if (o.e.altKey) {
       this.canvas.selection = false;
       this.canvas.lastPosX = o.e.clientX;
       this.canvas.lastPosY = o.e.clientY;
       return;
     }
 
-    if (this.current_tool == "add") {
+    if (o.e.ctrlKey) {
       this.canvas.selection = false;
       default_dim = true
       let pointer = this.canvas.getPointer(o.e);
@@ -305,7 +303,7 @@ export class Annotator {
     mouse_x = pointer.x
     mouse_y = pointer.y
 
-    if (this.current_tool == "add") {
+    if (o.e.ctrlKey) {
       let distance2 = Math.abs(orig_x - mouse_x)**2 + Math.abs(orig_y - mouse_y)**2
       if (distance2 > 200) {
         default_dim = false
@@ -352,7 +350,7 @@ export class Annotator {
 
     is_down = false;
 
-    if (this.current_tool == "add" && default_dim) {
+    if (o.e.ctrlKey && default_dim) {
       let w = defaults['width']
       let h = defaults['height']
       drag_rect.set({left: orig_x - w/2,
