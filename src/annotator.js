@@ -239,6 +239,48 @@ export class Annotator {
     return rect;
   }
 
+  merge_selected() {
+    let selected = this.get_selected_track_ids();
+    if (selected.length == 2) {
+      this.merge_tracks(selected[0], selected[1]);
+    } else if (selected.length == 1 && this.prev_selected_track != -1) {
+      this.merge_tracks(this.prev_selected_track, selected[0]);
+    } else {
+      alert("Must select exactly 2 tracks in current frame to merge, or have 1 track selected with another selected in a previous frame.")
+    }
+  }
+
+  merge_tracks(id1, id2) {
+    // TODO change alert to visual indicator on canvas?
+    // Needed to avoid bug with deleted track still being selected
+    this.canvas.discardActiveObject()
+
+    // Prioritise lower track_id
+    let tmp = Math.min(id1, id2);
+    let tmp2 = Math.max(id1, id2);
+    id1 = tmp;
+    id2 = tmp2;
+    //[id1, id2] = [Math.min(id1, id2), Math.max(id1, id2)];
+
+    let range = utils.range(0, this.num_frames-1, 1);
+    let id2_boxes = this.get_objects_by(range, id2);
+    // Don't need to do anything to id1_boxes
+
+    // Merge track2 into track1
+    for (let frame_id of range) {
+      let frame = this.frames[frame_id];
+      if (!frame[id1] && frame[id2]) {
+        this.new_box(frame_id, id1, frame[id2]);
+      }
+    }
+
+    // Delete track2
+    this.delete_objects_by(range, id2);
+
+    this.set_dirty();
+    this.canvas.renderAll();
+  }
+
   get_selected_track_ids() {
     let active_objects = this.canvas.getActiveObjects();
     if (!active_objects) {

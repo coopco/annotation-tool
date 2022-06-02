@@ -141,6 +141,14 @@ document.getElementById('btn_delete_next').addEventListener('click', (e) => {
 })
 
 /*
+* Merge track
+*/
+
+document.getElementById('btn_merge_tracks').addEventListener('click', (e) => {
+  annotator.merge_selected();
+})
+
+/*
 * Options for track properties
 */
 
@@ -303,7 +311,7 @@ document.addEventListener('keydown', async function (e) {
     case 77: // m
       ////annotator.markSelected()
       ////updateText()
-      //annotator.mergeSelected()
+      annotator.merge_selected()
       break;
     case 82: // r
       let frame_ids = utils.range(0, annotator.num_frames-1, 1)
