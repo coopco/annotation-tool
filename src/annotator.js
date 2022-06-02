@@ -121,7 +121,7 @@ export class Annotator {
     for (let i = 0; i < this.num_frames; i++) {
       this.frames.push({})
     }
-    this.prev_selected_tracks = [];
+    this.prev_selected_track = -1;
 
     this.canvas.on('mouse:down', (o) => this.mouse_down(o));
     this.canvas.on('mouse:move', (o) => this.mouse_move(o));
@@ -138,12 +138,15 @@ export class Annotator {
     for (let i = 0; i < this.num_frames; i++) {
       this.frames.push({})
     }
-    this.prev_selected_tracks = [];
+    this.prev_selected_track = -1;
     this.canvas.clear();
     this.canvas.setBackgroundImage(this.video)
   }
 
   async set_frame(frame_id) {
+    this.set_dirty();
+    let old_frame = this.current_frame;
+
     // Adding 0.0001 seems to avoid rounding errors
     this.videoEl.currentTime = this.current_frame / this.framerate + 0.0001
     await new Promise((resolve) => {
@@ -167,16 +170,52 @@ export class Annotator {
     })
 
     // Select all tracks in current frame that were previously selected
-    // TODO get continued_tracks working properly
     let continued_tracks = this.get_objects_by(this.current_frame, selected)
-    let sel = new fabric.ActiveSelection(continued_tracks, {
-      canvas: this.canvas,
-    });
-    this.canvas.setActiveObject(sel);
 
-    // TODO Select those in prev_selected_tracks as well
-    this.prev_selected_tracks.push(selected);
+    // TODO simplify
+    // Choose prev_selected_track
+    if (selected.length == 1 && continued_tracks.length == 0) {
+      this.prev_selected_track = selected[0];
+    } else if (selected.length == 1 && continued_tracks.length > 0) {
+      this.prev_selected_track = this.prev_selected_track;
+    } else if (selected.length > 1 && continued_tracks.length == 0) {
+      this.prev_selected_track = -1;
+    } else if (selected.length > 1 && continued_tracks.length > 0) {
+      if (selected.length > continued_tracks.length) {
+        this.prev_selected_track = -1;
+      } else {
+        this.prev_selected_track = this.prev_selected_track
+      }
+    } else if (selected.length == 0 && this.prev_selected_track != -1 &&
+               this.frames[old_frame][this.prev_selected_track]) {
+      this.prev_selected_track = -1;
+    }
 
+    let box = this.frames[this.current_frame][this.prev_selected_track];
+    let left, top;
+    if (box) {
+      continued_tracks.push(box);
+      // Needed for weird fabric.js bug where selected box gets moved
+      let left = box.left;
+      let top = box.top;
+    }
+
+    if (continued_tracks.length > 0) {
+      let sel = new fabric.ActiveSelection(continued_tracks, {
+        canvas: this.canvas,
+      });
+      this.canvas.setActiveObject(sel);
+    }
+
+    // Needed for weird fabric.js bug where selected box gets moved
+    if (box) {
+      box.dirty = true;
+      box.left = left;
+      box.top = top;
+    }
+
+    this.canvas.renderAll();
+    this.update_UI();
   }
 
   new_box(frame_id, track_id, properties={}) {
@@ -217,8 +256,8 @@ export class Annotator {
   }
 
   get_new_track_id() {
-    if (this.prev_selected_tracks.length == 1) {
-      return this.prev_selected_tracks[0];
+    if (this.prev_selected_track != -1) {
+      return this.prev_selected_track;
     }
 
     let track_ids = this.get_track_ids();
@@ -492,22 +531,19 @@ export class Annotator {
   }
 
   selection_cleared(o) {
-    this.prev_selected_tracks = [];
     this.update_UI();
     field_id.disabled = true;
-    if (nearby_mode) this.set_nearby_visibility();
+    //if (nearby_mode) this.set_nearby_visibility();
   }
 
   selection_created(o) {
-    this.prev_selected_tracks = [];
     this.update_UI();
-    if (nearby_mode) this.set_nearby_visibility();
+    //if (nearby_mode) this.set_nearby_visibility();
   }
 
   selection_updated(o) {
-    this.prev_selected_tracks = [];
     this.update_UI();
-    if (nearby_mode) this.set_nearby_visibility();
+    //if (nearby_mode) this.set_nearby_visibility();
   }
 
   update_UI() {
@@ -524,7 +560,12 @@ export class Annotator {
     }
 
     // Update text
-    // TODO include prev_selected_tracks
+    let p_state_text = ''
+    if (this.prev_selected_track != -1) {
+      p_state_text = `Previously selected track ID: ${this.prev_selected_track}\n\n`
+    } else {
+      p_state_text = 'No previously selected track\n\n';
+    }
     let track_text = selected.map(id => {
       // For some reason, isNaN checks if a string is (not) a number
       let frame_ids = Object.keys(this.tracks[id]).filter(key => !isNaN(key));
@@ -532,9 +573,9 @@ export class Annotator {
       let last_frame = Math.max(...frame_ids);
       return `ID: ${id}, Frames ${first_frame}-${last_frame}`
     })
-    p_state.textContent = `Selected Tracks:\n ${track_text.join('\n ')}`
+    p_state_text = p_state_text + `Selected Tracks:\n ${track_text.join('\n ')}`
     let marked = this.get_track_ids().filter(e => this.tracks[e].marked)
-    console.log(marked);
-    p_state.textContent = p_state.textContent + `\n\nMarked Tracks:\n ${marked.join(', ')}`
+    p_state_text += `\n\nMarked Tracks:\n ${marked.join(', ')}`
+    p_state.textContent = p_state_text;
   }
 }
