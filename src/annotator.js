@@ -147,14 +147,6 @@ export class Annotator {
     this.set_dirty();
     let old_frame = this.current_frame;
 
-    // Adding 0.0001 seems to avoid rounding errors
-    this.videoEl.currentTime = this.current_frame / this.framerate + 0.0001
-    await new Promise((resolve) => {
-      this.videoEl.onseeked = () => {
-        resolve(video);
-      };
-    });
-
     // Need to clear selection
     let selected = this.get_selected_track_ids()
     this.canvas.discardActiveObject()
@@ -213,6 +205,14 @@ export class Annotator {
       box.left = left;
       box.top = top;
     }
+
+    // Adding 0.0001 seems to avoid rounding errors
+    this.videoEl.currentTime = this.current_frame / this.framerate + 0.0001
+    await new Promise((resolve) => {
+      this.videoEl.onseeked = () => {
+        resolve(video);
+      };
+    });
 
     this.canvas.renderAll();
     this.update_UI();
@@ -352,6 +352,7 @@ export class Annotator {
     this.get_objects_by(range, track_ids).forEach(box => {
       box.dirty = true;
     });
+    //this.video.set({ dirty: true });
   }
 
   // TODO call when moving, resizing, etc.
