@@ -260,6 +260,24 @@ export class Annotator {
     return rect;
   }
 
+  interpolate(box1, box2) {
+    let d_frames = box2.frame_id - box1.frame_id;
+    let step_left = (box2.left - box1.left) / d_frames;
+    let step_top = (box2.top - box1.top) / d_frames;
+    let step_width = (box2.width - box1.width) / d_frames;
+    let step_height = (box2.height - box1.height) / d_frames;
+    console.log(d_frames);
+    for (let i = 1; i < d_frames; i++) {
+      this.new_box(box1.frame_id+i, box1.track_id, {
+        left: box1.left + step_left*i,
+        top: box1.top + step_top*i,
+        width: box1.width + step_width*i,
+        height: box1.height + step_height*i,
+        visible: false,
+      });
+    }
+  }
+
   merge_selected() {
     let selected = this.get_selected_track_ids();
     if (selected.length == 2) {
@@ -636,6 +654,21 @@ export class Annotator {
                        width: w,
                        height: h,
         });
+      }
+
+      // Interpolate
+      if (interpolation) {
+        let id = drag_rect.track_id;
+        let frame_ids = Object.keys(this.tracks[id])
+                              .filter(key => !isNaN(key) && key != drag_rect.frame_id);
+        let last_frame = Math.max(...frame_ids);
+        let first_frame = Math.min(...frame_ids);
+
+        if (frame_ids.length > 0 && this.current_frame > last_frame) {
+          this.interpolate(this.tracks[id][last_frame], drag_rect);
+        } else if (frame_ids.length > 0 && this.current_frame < first_frame) {
+          this.interpolate(drag_rect, this.tracks[id][first_frame]);
+        }
       }
 
       this.canvas.renderAll();
