@@ -391,7 +391,6 @@ export class Annotator {
       frame_id: this.current_frame,
       viewport: this.canvas.viewportTransform,
     }
-    console.log(this.states);
   }
 
   load_state(state) {
@@ -697,6 +696,7 @@ export class Annotator {
 
   update_UI() {
     let selected = this.get_selected_track_ids();
+    // Update width and height text fields
     if (selected.length == 1) {
       let id = selected[0];
       field_id.value = id;

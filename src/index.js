@@ -13,6 +13,8 @@ let increment = 50;
 let paused = true;
 let field_id = document.getElementById('field_id');
 let field_color = document.getElementById('field_color');
+let field_width = document.getElementById('field_width');
+let field_height = document.getElementById('field_height');
 document.getElementById('chkbox_dot_mode').checked = false;
 document.getElementById('chkbox_mark_mode').checked = false;
 document.getElementById('chkbox_show_mode').checked = false;
@@ -161,7 +163,7 @@ document.getElementById('btn_delete_next').addEventListener('click', (e) => {
 })
 
 /*
-* Merge track
+*  Merge track
 */
 
 document.getElementById('btn_merge_tracks').addEventListener('click', (e) => {
@@ -169,7 +171,58 @@ document.getElementById('btn_merge_tracks').addEventListener('click', (e) => {
 })
 
 /*
-* Options for track properties
+*  Box size options
+*/
+
+function update_size(width, height) {
+  let selected = annotator.get_selected_track_ids();
+  // Update default size
+  if (selected.length > 0) {
+    let frame_ids = annotator.current_frame;
+    if (document.getElementById('chkbox_interpolate_size').checked) {
+      frame_ids = utils.range(0, annotator.num_frames-1, 1);
+    }
+
+    // Update size of selected
+    annotator.get_objects_by(frame_ids, selected).forEach((r) => {
+      let dw = r.width - width;
+      let dh = r.height - height;
+      r.set({
+        left: r.left + dw/2,
+        top: r.top + dh/2,
+        width: width,
+        height: height
+      })
+    });
+
+    annotator.save_state();
+    annotator.set_dirty();
+    annotator.canvas.renderAll();
+    console.log("MANUAL RESIZING");
+  }
+}
+
+document.getElementById('btn_size_update').addEventListener('click', (e) => {
+  // TODO error handling
+  let width = Number(field_width.value);
+  let height = Number(field_height.value);
+  update_size(width, height);
+})
+
+field_width.addEventListener('input', (e) => {
+  let width = Number(field_width.value);
+  let height = Number(field_height.value);
+  update_size(width, height);
+})
+
+field_height.addEventListener('input', (e) => {
+  let width = Number(field_width.value);
+  let height = Number(field_height.value);
+  update_size(width, height);
+})
+
+/*
+*  Options for track properties
 */
 
 document.getElementById('field_id').addEventListener('input', (e) => {
