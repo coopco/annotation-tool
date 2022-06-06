@@ -9,6 +9,7 @@ let range = document.getElementById('range_scroll');
 let field_fps = document.getElementById('field_fps');
 field_fps.value = annotator.FRAMERATE;
 let btn_play = document.getElementById('btn_play');
+let increment = 50;
 let paused = true;
 let field_id = document.getElementById('field_id');
 let field_color = document.getElementById('field_color');
@@ -23,6 +24,10 @@ function updateUI() {
   document.getElementById('current_frame').textContent = `Frame index: ${annotator.current_frame}/${annotator.num_frames-1}`
   range.value = annotator.current_frame;
   annotator.canvas.renderAll();
+  
+  // Disable/renable undo/redo buttons
+  document.getElementById('btn_undo').disabled = !annotator.can_undo();
+  document.getElementById('btn_redo').disabled = !annotator.can_redo();
 }
 
 async function set_frame(frame_id) {
@@ -64,13 +69,20 @@ document.getElementById('btn_prev_frame').addEventListener('click', (e) => {
   set_frame(annotator.current_frame - 1);
 })
 
-document.getElementById('btn_first_frame').addEventListener('click', (e) => {
-  set_frame(0);
+document.getElementById('btn_decrement').addEventListener('click', (e) => {
+  let frame = Math.max(0, annotator.current_frame-increment);
+  set_frame(frame);
 })
 
-document.getElementById('btn_last_frame').addEventListener('click', (e) => {
-  set_frame(annotator.num_frames - 1);
+document.getElementById('btn_increment').addEventListener('click', (e) => {
+  let frame = Math.min(annotator.num_frames-1, annotator.current_frame+increment);
+  set_frame(frame);
 })
+
+document.getElementById('field_increment').addEventListener('input', (e) => {
+  increment = Number(document.getElementById('field_increment').value);
+});
+
 
 document.getElementById('text_field_frame').addEventListener('keydown', function (e) {
   if(e.key === 'Enter') {
@@ -277,13 +289,11 @@ document.getElementById('chkbox_inter_mode').addEventListener('change', (e) => {
 *  History functions
 */
 document.getElementById('btn_undo').addEventListener('click', (e) => {
-  // TODO disable if unable to undo
   annotator.undo();
   updateUI();
 });
 
 document.getElementById('btn_redo').addEventListener('click', (e) => {
-  // TODO disable if unable to redo
   annotator.redo();
   updateUI();
 });

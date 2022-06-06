@@ -30,37 +30,17 @@
         </div>
         <!--<canvas id="canvas" width="1024" height="542"></canvas>-->
 
-        <div style="float: left">
-          <label for="field_fps">Set video FPS:</label>
-          <input id="field_fps" type="number" placeholder="FPS" size=4>
-          <button id="btn_fps_change">Update FPS</button>
-        </div>
-
-        <div style="float: right">
-            <label for="text_field_frame">Set frame:</label>
-            <input id="text_field_frame" type="number" placeholder="Frame ID" size=8>
-        </div>
-
-        <div style="margin: 0 auto; width: 200px; text-align: center">
-            <p class="current_frame" id="current_frame" align="center"></p>
-        </div>
-
-        <div class="frame_controls">
-            <button id="btn_first_frame" title="Hotkey: s">First</button>
-            <button id="btn_prev_frame" title="Hotkey: a">Prev</button>
-            <button id="btn_play" title="Hotkey: p">Play</button>
-            <button id="btn_next_frame" title="Hotkey: d">Next</button>
-            <button id="btn_last_frame" title="Hotkey: w">Last</button>
-        </div>
-
-
         <div class="row">
           <div class="column">
-            <div class="row">
-              <div class="download">
-                <button id="btn_track_down">Download all tracks</button>
-                <button id="btn_ant_track_down">Download marked tracks</button>
-              </div>
+            <div style="float: left">
+              <label for="field_fps">Set video FPS:</label>
+              <input id="field_fps" type="number" placeholder="FPS" size=4>
+              <button id="btn_fps_change">Update FPS</button>
+            </div>
+
+            <div class="download">
+              <button id="btn_track_down">Download all tracks</button>
+              <button id="btn_ant_track_down">Download marked tracks</button>
             </div>
             <div class="row">
               <input type="checkbox" id="chkbox_rotation">Include rotation in download.</button>
@@ -69,22 +49,45 @@
               <button id="btn_undo">Undo</button>
               <button id="btn_redo">Redo</button>
             </div>
+
           </div>
-          <div class="view_controls column">
-            <div class="row">
-              <button id="btn_mark_tracks">Toggle mark</button>
-              <button id="btn_clear_marked">Clear all marks</button>
+          <div class="column">
+            <div style="margin: 0 auto; width: 200px; text-align: center">
+              <p class="current_frame" id="current_frame" align="center"></p>
             </div>
-            <div class="row">
-              <input type="checkbox" id="chkbox_mark_mode">Show only marked</button>
-              <input type="checkbox" id="chkbox_dot_mode">Dot mode</button>
+            <div class="frame_controls">
+              <button id="btn_decrement" title="Hotkey: s">-Inc</button>
+              <button id="btn_prev_frame" title="Hotkey: a">Prev</button>
+              <button id="btn_play" title="Hotkey: p">Play</button>
+              <button id="btn_next_frame" title="Hotkey: d">Next</button>
+              <button id="btn_increment" title="Hotkey: w">+Inc</button>
             </div>
-            <div class="row">
-              <input type="checkbox" id="chkbox_show_mode" disabled>Show only nearby</button>
+            <div style="margin: 0 auto; width: 200px; text-align: center">
+              <label for="field_increment">Increment:</label>
+              <input id="field_increment" type="number" value=50 step=5 size=4>
             </div>
-            <div class="row">
-              <label for="range_distance" id="label_range_distance">Distance (50):</label>
-              <input type="range" id="range_distance" min="0" max="200" value="50">
+          </div>
+          <div class="column">
+            <div style="float: right">
+              <label for="text_field_frame">Set frame:</label>
+              <input id="text_field_frame" type="number" placeholder="Frame ID" size=8>
+              <div class="view_controls column">
+                <div class="row">
+                  <button id="btn_mark_tracks">Toggle mark</button>
+                  <button id="btn_clear_marked">Clear all marks</button>
+                </div>
+                <div class="row">
+                  <input type="checkbox" id="chkbox_mark_mode">Show only marked</button>
+                  <input type="checkbox" id="chkbox_dot_mode">Dot mode</button>
+                </div>
+                <div class="row">
+                  <input type="checkbox" id="chkbox_show_mode" disabled>Show only nearby</button>
+                </div>
+                <div class="row">
+                  <label for="range_distance" id="label_range_distance">Distance (50):</label>
+                  <input type="range" id="range_distance" min="0" max="200" value="50">
+                </div>
+              </div>
             </div>
           </div>
         </div>

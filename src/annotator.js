@@ -418,31 +418,37 @@ export class Annotator {
     this.states_time = old_st;
   }
 
-  undo() {
-    // + 99 avoids need for proper negative modulo
-    this.states_pointer = (this.states_pointer + this.states.length - 1) % HISTORY_LENGTH;
-    this.states_time -= 1;
+  can_undo() {
+    let states_pointer = (this.states_pointer + this.states.length - 1) % HISTORY_LENGTH;
+    let states_time = this.states_time - 1;
     // If previous state is not in the future, and exists
-    if (this.states_time > -99 && this.states[this.states_pointer]) {
+    return states_time > -HISTORY_LENGTH + 1 && this.states[states_pointer];
+  }
+
+  can_redo() {
+    let states_pointer = (this.states_pointer + 1) % HISTORY_LENGTH;
+    let states_time = this.states_time + 1;
+    // If previous state is in the future, or doesn't exist
+    return states_time <= 0 && this.states[states_pointer];
+  }
+
+  undo() {
+    if (this.can_undo()) {
+      // + 99 avoids need for proper negative modulo
+      this.states_pointer = (this.states_pointer + this.states.length - 1) % HISTORY_LENGTH;
+      this.states_time -= 1;
       this.load_state(this.states[this.states_pointer]);
     } else {
-      // reset this.states_pointer and this.states_time
-      this.states_pointer = (this.states_pointer + 1) % HISTORY_LENGTH;
-      this.states_time += 1;
       console.log("CAN'T UNDO");
     }
   }
 
   redo() {
-    this.states_pointer = (this.states_pointer + 1) % HISTORY_LENGTH;
-    this.states_time += 1;
-    // If previous state is in the future, or doesn't exist
-    if (this.states_time <= 0 && this.states[this.states_pointer]) {
+    if (this.can_redo()) {
+      this.states_pointer = (this.states_pointer + 1) % HISTORY_LENGTH;
+      this.states_time += 1;
       this.load_state(this.states[this.states_pointer]);
     } else {
-      // reset this.states_pointer and this.states_time
-      this.states_pointer = (this.states_pointer + this.states.length - 1) % HISTORY_LENGTH;
-      this.states_time -= 1;
       console.log("CAN'T REDO");
     }
   }
@@ -719,5 +725,9 @@ export class Annotator {
     let marked = this.get_track_ids().filter(e => this.tracks[e].marked)
     p_state_text += `\n\nMarked Tracks:\n ${marked.join(', ')}`
     p_state.textContent = p_state_text;
+
+    // Disable/renable undo/redo buttons
+    document.getElementById('btn_undo').disabled = !this.can_undo();
+    document.getElementById('btn_redo').disabled = !this.can_redo();
   }
 }
