@@ -17,7 +17,9 @@ export let defaults = {
   marked: false,
 }
 
-let is_down, mouse_x, mouse_y;
+let HISTORY_LENGTH = 30;
+
+let is_down, mouse_x, mouse_y, dragged;
 let drag_rect, orig_x, orig_y, default_dim; // For when drag-creating new boxes
 let field_width = document.getElementById('field_width');
 let field_height = document.getElementById('field_height');
@@ -37,15 +39,23 @@ var Box = fabric.util.createClass(fabric.Rect, {
     options || (options = { });
 
     this.callSuper('initialize', options);
-    this.set('track_id', options.track_id || '');
+    this.set('track_id', options.track_id || 0);
+    this.set('frame_id', options.frame_id || 0);
     this.set('marked', options.marked || false);
   },
 
+  // For serialization
   toObject: function() {
     return fabric.util.object.extend(this.callSuper('toObject'), {
       track_id: this.get('track_id'),
+      frame_id: this.get('frame_id'),
       marked: this.get('marked')
     });
+  },
+
+  // For deserialization
+  fromObject: function(object, callback) {
+    return fabric.Object._fromObject('box', object, callback);
   },
 
   _render: function(ctx) {
@@ -121,6 +131,9 @@ export class Annotator {
     for (let i = 0; i < this.num_frames; i++) {
       this.frames.push({})
     }
+    this.states = new Array(HISTORY_LENGTH);
+    this.states_pointer = 0; // Points to current state in states
+    this.states_time = 0; // Tracks how far behind newest state we are
     this.prev_selected_track = -1;
 
     this.canvas.on('mouse:down', (o) => this.mouse_down(o));
@@ -130,14 +143,20 @@ export class Annotator {
     this.canvas.on('selection:cleared', (o) => this.selection_cleared(o));
     this.canvas.on('selection:created', (o) => this.selection_created(o));
     this.canvas.on('selection:updated', (o) => this.selection_updated(o));
+
+    this.save_state();
   }
 
   reinit() {
+    let range = utils.range(0, this.num_frames-1, 1);
+    this.delete_objects_by(range, this.get_track_ids());
     this.tracks = [];
     this.frames = [];
     for (let i = 0; i < this.num_frames; i++) {
       this.frames.push({})
     }
+    //this.states = new Array(HISTORY_LENGTH);
+    //this.save_state();
     this.prev_selected_track = -1;
     this.canvas.clear();
     this.canvas.setBackgroundImage(this.video)
@@ -226,8 +245,9 @@ export class Annotator {
     let rect = new Box(properties);
 
     if (!(track_id in this.tracks)) {
+      let stroke = properties.stroke || utils.getRandomColor();
       this.tracks[track_id] = {
-        stroke: utils.getRandomColor(),
+        stroke: stroke,
       };
     }
 
@@ -279,6 +299,8 @@ export class Annotator {
 
     this.set_dirty();
     this.canvas.renderAll();
+    this.save_state();
+    console.log("MERGE");
   }
 
   get_selected_track_ids() {
@@ -298,7 +320,7 @@ export class Annotator {
   }
 
   get_new_track_id() {
-    if (this.prev_selected_track != -1) {
+    if (this.prev_selected_track != -1 && !this.frames[this.current_frame][this.prev_selected_track]) {
       return this.prev_selected_track;
     }
 
@@ -343,6 +365,8 @@ export class Annotator {
         });
       }
     }
+    this.save_state();
+    console.log("UPDATE ANNOTATIONS");
   }
 
   set_dirty() {
@@ -353,6 +377,74 @@ export class Annotator {
       box.dirty = true;
     });
     //this.video.set({ dirty: true });
+  }
+
+  /*
+  *  History functions
+  */
+  save_state() {
+    this.states_pointer = (this.states_pointer + 1) % HISTORY_LENGTH
+    this.states_time = 0;
+    this.states[this.states_pointer] = {
+      canvas: this.canvas.toObject(),
+      frame_id: this.current_frame,
+      viewport: this.canvas.viewportTransform,
+    }
+    console.log(this.states);
+  }
+
+  load_state(state) {
+    // Not sure why this is required
+    let old_sp = this.states_pointer;
+    let old_st = this.states_time;
+
+    // Reinitialization
+    this.reinit();
+    // Add all objects
+    state.canvas.objects.forEach((o) => {
+      if (o.type == 'box') {
+        this.new_box(o.frame_id, o.track_id, o);
+      }
+    });
+    // Set frame
+    this.set_frame(state.frame_id);
+    this.update_UI();
+
+    // Restore viewport
+    this.canvas.viewportTransform = state.viewport;
+
+    // Not sure why this is required
+    this.states_pointer = old_sp;
+    this.states_time = old_st;
+  }
+
+  undo() {
+    // + 99 avoids need for proper negative modulo
+    this.states_pointer = (this.states_pointer + this.states.length - 1) % HISTORY_LENGTH;
+    this.states_time -= 1;
+    // If previous state is not in the future, and exists
+    if (this.states_time > -99 && this.states[this.states_pointer]) {
+      this.load_state(this.states[this.states_pointer]);
+    } else {
+      // reset this.states_pointer and this.states_time
+      this.states_pointer = (this.states_pointer + 1) % HISTORY_LENGTH;
+      this.states_time += 1;
+      console.log("CAN'T UNDO");
+    }
+  }
+
+  redo() {
+    this.states_pointer = (this.states_pointer + 1) % HISTORY_LENGTH;
+    this.states_time += 1;
+    // If previous state is in the future, or doesn't exist
+    if (this.states_time <= 0 && this.states[this.states_pointer]) {
+      this.load_state(this.states[this.states_pointer]);
+    } else {
+      // reset this.states_pointer and this.states_time
+      this.states_pointer = (this.states_pointer + this.states.length - 1) % HISTORY_LENGTH;
+      this.states_time -= 1;
+      console.log("CAN'T REDO");
+    }
   }
 
   // TODO call when moving, resizing, etc.
@@ -410,10 +502,12 @@ export class Annotator {
   }
 
   mouse_down(o) {
+    dragged = false
     if (o.target) {
       return;
     }
 
+    // TODO should rename this variable
     is_down = true;
 
     // Must use clientX for panning
@@ -453,6 +547,7 @@ export class Annotator {
   }
 
   mouse_move(o) {
+    dragged = true;
     if (!is_down) return;
 
     // Must use clientX for panning
@@ -505,8 +600,6 @@ export class Annotator {
 
     // Must update width, height, and flip after scaling since
     // fabric.js resizing only affects target.scaleX and target.scaleY
-    // TODO weird ass bug where scaling sometimes doesnt work
-    // TODO confirmed to be because of below code
     let target = o.target;
     if (target && !is_down && target.type == 'box') {
       if (!target || target.type !== 'box') {
@@ -521,21 +614,27 @@ export class Annotator {
 
       this.set_dirty();
       this.canvas.renderAll();
+      if (dragged) this.save_state();
+      if (dragged) console.log("TRANSFORMING");
       return;
     }
 
     is_down = false;
 
-    if ((o.e.ctrlKey || o.e.shiftKey) && default_dim) {
-      let w = defaults['width']
-      let h = defaults['height']
-      drag_rect.set({left: orig_x - w/2,
-                     top: orig_y - h/2,
-                     width: w,
-                     height: h,
-      });
+    if ((o.e.ctrlKey || o.e.shiftKey)) {
+      if (default_dim) {
+        let w = defaults['width']
+        let h = defaults['height']
+        drag_rect.set({left: orig_x - w/2,
+                       top: orig_y - h/2,
+                       width: w,
+                       height: h,
+        });
+      }
 
       this.canvas.renderAll();
+      this.save_state();
+      console.log("DEFAULT_DIM");
     }
     this.update_UI();
   }

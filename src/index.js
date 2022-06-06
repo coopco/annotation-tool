@@ -121,23 +121,31 @@ document.getElementById('btn_fps_change').addEventListener('click', (e) => {
 */
 
 document.getElementById('btn_delete_tracks').addEventListener('click', (e) => {
-  let frame_ids = utils.range(0, annotator.num_frames-1, 1)
+  let frame_ids = utils.range(0, annotator.num_frames-1, 1);
   annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
+  annotator.save_state();
+  console.log("DELETE");
 })
 
 document.getElementById('btn_delete_boxes').addEventListener('click', (e) => {
   annotator.delete_objects_by(annotator.current_frame,
     annotator.get_selected_track_ids());
+  annotator.save_state();
+  console.log("DELETE");
 })
 
 document.getElementById('btn_delete_prev').addEventListener('click', (e) => {
   let frame_ids = utils.range(0, annotator.current_frame-1, 1)
   annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
+  annotator.save_state();
+  console.log("DELETE");
 })
 
 document.getElementById('btn_delete_next').addEventListener('click', (e) => {
   let frame_ids = utils.range(annotator.current_frame, annotator.num_frames-1, 1)
   annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
+  annotator.save_state();
+  console.log("DELETE");
 })
 
 /*
@@ -184,6 +192,8 @@ document.getElementById('field_id').addEventListener('input', (e) => {
     delete annotator.tracks[old_id];
   }
 
+  annotator.save_state();
+  console.log("UPDATE ID");
   annotator.canvas.renderAll();
 })
 
@@ -200,16 +210,13 @@ document.getElementById('field_color').addEventListener('input', (e) => {
   });
 
   annotator.canvas.renderAll();
+  annotator.save_state();
+  console.log("UPDATE COLOR");
 })
 
 /*
 * Options for plotting
 */
-
-document.getElementById('btn_delete_tracks').addEventListener('click', (e) => {
-  let frame_ids = utils.range(0, annotator.num_frames-1, 1);
-  annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
-})
 
 document.getElementById('btn_mark_tracks').addEventListener('click', (e) => {
   let frame_ids = utils.range(0, annotator.num_frames-1, 1);
@@ -267,7 +274,22 @@ document.getElementById('chkbox_inter_mode').addEventListener('change', (e) => {
 })
 
 /*
-* Upload annotations
+*  History functions
+*/
+document.getElementById('btn_undo').addEventListener('click', (e) => {
+  // TODO disable if unable to undo
+  annotator.undo();
+  updateUI();
+});
+
+document.getElementById('btn_redo').addEventListener('click', (e) => {
+  // TODO disable if unable to redo
+  annotator.redo();
+  updateUI();
+});
+
+/*
+*  Upload annotations
 */
 
 document.getElementById('annotationfile').addEventListener('change', (e) => {
@@ -280,7 +302,7 @@ document.getElementById('annotationfile').addEventListener('change', (e) => {
 })
 
 /*
-* Download annotations
+*  Download annotations
 */
 
 document.getElementById('btn_track_down').addEventListener('click', (e) => {
@@ -316,6 +338,8 @@ document.addEventListener('keydown', async function (e) {
     case 82: // r
       let frame_ids = utils.range(0, annotator.num_frames-1, 1)
       annotator.delete_objects_by(frame_ids, annotator.get_selected_track_ids());
+      annotator.save_state();
+      console.log("DELETE");
       break;
     case 87: // w
       set_frame(annotator.num_frames - 1);
@@ -326,6 +350,8 @@ document.addEventListener('keydown', async function (e) {
     case 88: // x
       annotator.delete_objects_by(annotator.current_frame,
         annotator.get_selected_track_ids());
+      annotator.save_state();
+      console.log("DELETE");
       break;
     case 80: // p
       paused = !paused;
