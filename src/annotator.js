@@ -25,6 +25,7 @@ let field_width = document.getElementById('field_width');
 let field_height = document.getElementById('field_height');
 let field_id = document.getElementById('field_id');
 let p_state = document.getElementById('p_state');
+let p_state_bold = document.getElementById('p_state_bold');
 
 // Plotting options
 let dot_mode = false;
@@ -711,8 +712,10 @@ export class Annotator {
     let p_state_text = ''
     if (this.prev_selected_track != -1) {
       p_state_text = `Previously selected track ID: ${this.prev_selected_track}\n\n`
+      p_state_bold.textContent = `Previously selected track: ${this.prev_selected_track}`
     } else {
       p_state_text = 'No previously selected track\n\n';
+      p_state_bold.textContent = "Previously selected track: None"
     }
     let track_text = selected.map(id => {
       // For some reason, isNaN checks if a string is (not) a number
