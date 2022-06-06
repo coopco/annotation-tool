@@ -4,8 +4,12 @@ body, html {
     margin-top: 0;
 }
 
+input[type="number"] {
+  width: 6em;
+}
+
 .row {
-    display: flex
+    display: flex;
 }
 
 .column {
@@ -53,7 +57,21 @@ body, html {
 }
 
 .delete_buttons {
-    margin-bottom: 10px
+    margin-bottom: 10px;
+}
+
+.download {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.mark_buttons {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.set_fps {
+    margin-bottom: 10px;
 }
 
 .slidecontainer {

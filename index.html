@@ -32,7 +32,7 @@
 
         <div class="row">
           <div class="column">
-            <div style="float: left">
+            <div style="row">
               <label for="field_fps">Set video FPS:</label>
               <input id="field_fps" type="number" placeholder="FPS" size=4>
               <button id="btn_fps_change">Update FPS</button>
@@ -41,8 +41,7 @@
             <div class="download">
               <button id="btn_track_down">Download all tracks</button>
               <button id="btn_ant_track_down">Download marked tracks</button>
-            </div>
-            <div class="row">
+              <br>
               <input type="checkbox" id="chkbox_rotation" checked>Include rotation in download.</button>
             </div>
             <div class="row">
@@ -72,7 +71,7 @@
               <label for="text_field_frame">Set frame:</label>
               <input id="text_field_frame" type="number" placeholder="Frame ID" size=8>
               <div class="view_controls column">
-                <div class="row">
+                <div class="row mark_buttons">
                   <button id="btn_mark_tracks">Toggle mark</button>
                   <button id="btn_clear_marked">Clear all marks</button>
                 </div>
@@ -96,8 +95,7 @@
       <div class="controls">
         <div class="tools">
 
-        <p>Ctrl-click or Shift-click to add new track, or add to previously selected track.</p>
-        <p>Ctrl/shift-click and drag to choose size of newly added box</p>
+        <p>(Ctrl/Shift)-click and drag to add new track, or add to previously selected track.</p>
         <p id="p_state_bold" style="color: red">Previously selected track: None</p>
           <div class="delete_buttons">
             <button id="btn_delete_tracks" title="Hotkey: d">Delete in all frames</button>
@@ -112,10 +110,10 @@
         <div class="size_controls">
           <h3>Box Size</h3>
           <label for="field_width">Box width:</label>
-          <input id="field_width" type="number" placeholder="Width" step=5 size=4>
+          <input id="field_width" type="number" placeholder="Width" step=5 size=6>
           <br>
           <label for="field_height">Box height:</label>
-          <input id="field_height" type="number" placeholder="height" step=5 size=4>
+          <input id="field_height" type="number" placeholder="Height" step=5 size=6>
           <br>
           <button id="btn_size_update">Update size</button>
           <input type="checkbox" id="chkbox_interpolate_size">Apply to all frames</button>

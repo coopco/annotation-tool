@@ -758,10 +758,10 @@ export class Annotator {
     // Update text
     let p_state_text = ''
     if (this.prev_selected_track != -1) {
-      p_state_text = `Previously selected track ID: ${this.prev_selected_track}\n\n`
+      //p_state_text = `Previously selected track ID: ${this.prev_selected_track}\n\n`
       p_state_bold.textContent = `Previously selected track: ${this.prev_selected_track}`
     } else {
-      p_state_text = 'No previously selected track\n\n';
+      //p_state_text = 'No previously selected track\n\n';
       p_state_bold.textContent = "Previously selected track: None"
     }
     let track_text = selected.map(id => {
