@@ -437,13 +437,13 @@ document.addEventListener('keydown', async function (e) {
       await play_video();
       break;
     case 89: // y
-      if (e.ctrlKey) {
+      if (e.ctrlKey || e.altKey) {
         annotator.redo();
         updateUI();
       }
       break;
     case 90: // z
-      if (e.ctrlKey) {
+      if (e.ctrlKey || e.altKey) {
         annotator.undo();
         updateUI();
       }
