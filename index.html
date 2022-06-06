@@ -121,19 +121,23 @@
           <input type="checkbox" id="chkbox_interpolate_size">Apply to all frames</button>
         </div>
 
-
-        <div class="options">
-          <h3>Options</h3>
-          <input type="checkbox" id="chkbox_inter_mode">Interpolation</button>
+        <div class="interpolation">
+          <h3>Interpolation</h3>
+          <input type="checkbox" id="chkbox_inter_mode">Interpolate when adding new box</button>
+          <br>
+          <button id="btn_interpolate_all">Interpolate within all tracks</button> 
+          <br>
+          <button id="btn_interpolate">Interpolate within selected tracks</button> 
         </div>
 
         <div class="track_options">
+          <h3>Options</h3>
         <!--<h3>Track Options</h3>-->
-        <label for="field_id">Set track ID:</label>
-        <input id="field_id" type="number" min="0" placeholder="Track ID" disabled size=8>
-        <br>
-        <label for="field_color">Set track colour:</label>
-        <input id="field_color" type="color">
+          <label for="field_id">Set track ID:</label>
+          <input id="field_id" type="number" min="0" placeholder="Track ID" disabled size=8>
+          <br>
+          <label for="field_color">Set track colour:</label>
+          <input id="field_color" type="color">
         </div>
 
         <div class="text_output">

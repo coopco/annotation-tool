@@ -222,6 +222,26 @@ field_height.addEventListener('input', (e) => {
 })
 
 /*
+*  Options for interpolation
+*/
+document.getElementById('chkbox_inter_mode').addEventListener('change', (e) => {
+  annotator.toggle_interpolation()
+})
+
+document.getElementById('btn_interpolate').addEventListener('click', (e) => {
+  let track_ids = annotator.get_selected_track_ids();
+  track_ids.forEach((t) => { annotator.interpolate_track(t) });
+  console.log("INTERPOLATE SELECTED");
+})
+
+document.getElementById('btn_interpolate_all').addEventListener('click', (e) => {
+  let track_ids = annotator.get_track_ids();
+  track_ids.forEach((t) => { annotator.interpolate_track(t) });
+  annotator.save_state();
+  console.log("INTERPOLATE ALL");
+})
+
+/*
 *  Options for track properties
 */
 
@@ -332,10 +352,6 @@ document.getElementById('range_distance').addEventListener('input', (e) => {
 
 document.getElementById('chkbox_mark_mode').addEventListener('change', (e) => {
   annotator.toggle_mark_mode()
-})
-
-document.getElementById('chkbox_inter_mode').addEventListener('change', (e) => {
-  annotator.toggle_interpolation()
 })
 
 /*

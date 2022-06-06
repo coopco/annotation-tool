@@ -262,6 +262,9 @@ export class Annotator {
 
   interpolate(box1, box2) {
     let d_frames = box2.frame_id - box1.frame_id;
+    if (d_frames < 2) {
+      return;
+    }
     let step_left = (box2.left - box1.left) / d_frames;
     let step_top = (box2.top - box1.top) / d_frames;
     let step_width = (box2.width - box1.width) / d_frames;
@@ -276,6 +279,17 @@ export class Annotator {
         visible: false,
       });
     }
+  }
+
+  interpolate_track(track_id) {
+    let track = this.tracks[track_id];
+    let frame_ids = Object.keys(track).filter(key => !isNaN(key));
+    console.log(frame_ids);
+    for (let i = 1; i < frame_ids.length; i++) {
+      this.interpolate(track[frame_ids[i-1]], track[frame_ids[i]]);
+    }
+    this.set_dirty();
+    this.set_frame(this.current_frame);
   }
 
   merge_selected() {
