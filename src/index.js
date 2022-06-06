@@ -421,10 +421,10 @@ document.addEventListener('keydown', async function (e) {
       console.log("DELETE");
       break;
     case 87: // w
-      set_frame(annotator.num_frames - 1);
+      set_frame(Math.min(annotator.num_frames-1, annotator.current_frame+increment));
       break;
     case 83: // s
-      set_frame(0);
+      set_frame(Math.max(0, annotator.current_frame-increment));
       break;
     case 88: // x
       annotator.delete_objects_by(annotator.current_frame,
@@ -435,6 +435,18 @@ document.addEventListener('keydown', async function (e) {
     case 80: // p
       paused = !paused;
       await play_video();
+      break;
+    case 89: // y
+      if (e.ctrlKey) {
+        annotator.redo();
+        updateUI();
+      }
+      break;
+    case 90: // z
+      if (e.ctrlKey) {
+        annotator.undo();
+        updateUI();
+      }
       break;
     default:
       break;
