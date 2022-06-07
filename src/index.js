@@ -37,24 +37,55 @@ async function set_frame(frame_id) {
   updateUI();
 }
 
-async function play_video() {
-  // get time
-  let start_time = performance.now();
-
-  if (annotator.current_frame >= annotator.num_frames - 1) return;
-  set_frame(annotator.current_frame + 1);
-
-  let end_time = performance.now();
-
-  //minus get time
-  let diff = end_time - start_time
-  await new Promise(r => setTimeout(r, 2000/annotator.framerate - diff));
+async function play_video_callback() {
+  // calculate id of current frame
+  let frame_id = (annotator.videoEl.currentTime * annotator.framerate) | 0
+  // TODO race
+  //await annotator.set_frame(frame_id, false);
+  let frame = annotator.frames[annotator.current_frame]
+  Object.keys(frame).forEach((id) => {
+    frame[id].set({visible: false})
+  })
+  annotator.current_frame = frame_id
+  frame = annotator.frames[annotator.current_frame]
+  Object.keys(frame).forEach((id) => {
+    frame[id].set({visible: true})
+  })
+  updateUI();
 
   if (paused) {
+    // Are there left over threads?
+    annotator.videoEl.pause();
+
+    // set_frame just to make sure annotator is in good state
+    // maybe isn't strictly necessary
+    annotator.videoEl.currentTime = frame_id / annotator.framerate + 0.0001
+    await new Promise((resolve) => {
+      annotator.videoEl.onseeked = () => {
+        resolve(video);
+      };
+    });
+
+    annotator.canvas.renderAll();
+    annotator.update_UI();
     return;
   } else {
-    await play_video();
+    requestAnimationFrame(play_video_callback);
   }
+}
+
+async function play_video() {
+  if (annotator.current_frame >= annotator.num_frames - 1) {
+    paused = true;
+    return;
+  }
+
+  // If first call
+  annotator.videoEl.play();
+  annotator.canvas.discardActiveObject();
+  // TODO disable selection, adding boxes, etc. while playing
+  //
+  requestAnimationFrame(play_video_callback);
 }
 
 /*
@@ -434,7 +465,12 @@ document.addEventListener('keydown', async function (e) {
       break;
     case 80: // p
       paused = !paused;
-      await play_video();
+      if (btn_play.innerHTML == "Play") {
+        btn_play.innerHTML = "Pause"
+      } else {
+        btn_play.innerHTML = "Play"
+      }
+      play_video();
       break;
     case 89: // y
       if (e.ctrlKey || e.altKey) {
