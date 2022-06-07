@@ -269,7 +269,6 @@ export class Annotator {
     let step_top = (box2.top - box1.top) / d_frames;
     let step_width = (box2.width - box1.width) / d_frames;
     let step_height = (box2.height - box1.height) / d_frames;
-    console.log(d_frames);
     for (let i = 1; i < d_frames; i++) {
       this.new_box(box1.frame_id+i, box1.track_id, {
         left: box1.left + step_left*i,
@@ -284,7 +283,6 @@ export class Annotator {
   interpolate_track(track_id) {
     let track = this.tracks[track_id];
     let frame_ids = Object.keys(track).filter(key => !isNaN(key));
-    console.log(frame_ids);
     for (let i = 1; i < frame_ids.length; i++) {
       this.interpolate(track[frame_ids[i-1]], track[frame_ids[i]]);
     }
@@ -666,7 +664,7 @@ export class Annotator {
         drag_rect.set({left: orig_x - w/2,
                        top: orig_y - h/2,
                        width: w,
-                       height: h,
+                       height: h
         });
       }
 
