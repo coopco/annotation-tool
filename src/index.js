@@ -351,11 +351,12 @@ document.getElementById('btn_mark_tracks').addEventListener('click', (e) => {
 });
 
 document.getElementById('btn_clear_marked').addEventListener('click', (e) => {
-  let frame_ids = utils.range(0, annotator.num_frames-1, 1);
   let track_ids = annotator.get_track_ids();
-  let boxes = annotator.get_objects_by(frame_ids, track_ids);
-  boxes.forEach(b => {
-    b.marked = false;
+  // TODO kind of ugly, but is much faster tha annotator.get_objects_by
+  annotator.frames.forEach(f => {
+    track_ids.forEach(id => {
+      if (f[id]) f[id].marked = false;
+    });
   });
   track_ids.forEach(id => {
     annotator.tracks[id].marked = false;
@@ -363,7 +364,7 @@ document.getElementById('btn_clear_marked').addEventListener('click', (e) => {
 
   annotator.set_dirty();
   annotator.canvas.renderAll();
-  // TODO update text
+  annotator.update_UI();
 });
 
 document.getElementById('chkbox_dot_mode').addEventListener('change', (e) => {
