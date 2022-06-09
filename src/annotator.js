@@ -226,6 +226,7 @@ export class Annotator {
       box.top = top;
     }
 
+    // TODO seeking is the only real time sink
     // Adding 0.0001 seems to avoid rounding errors
     this.videoEl.currentTime = this.current_frame / this.framerate + 0.0001
     await new Promise((resolve) => {
@@ -401,13 +402,12 @@ export class Annotator {
   }
 
   set_dirty() {
-    let range = utils.range(0, this.num_frames-1, 1);
     let track_ids = this.get_track_ids();
-
-    this.get_objects_by(range, track_ids).forEach(box => {
+    // I think we can get away with only applying to current_frame,
+    // as it seems like boxes are automatically dirties when visibility is changed
+    this.get_objects_by(this.current_frame, track_ids).forEach(box => {
       box.dirty = true;
     });
-    //this.video.set({ dirty: true });
   }
 
   /*
@@ -648,7 +648,7 @@ export class Annotator {
       target.scaleX = 1;
       target.scaleY = 1;
 
-      this.set_dirty();
+      target.set({ dirty: true});
       this.canvas.renderAll();
       if (dragged) this.save_state();
       if (dragged) console.log("TRANSFORMING");

@@ -222,12 +222,12 @@ function update_size(width, height) {
         left: r.left + dw/2,
         top: r.top + dh/2,
         width: width,
-        height: height
+        height: height,
+        dirty: true,
       })
     });
 
     annotator.save_state();
-    annotator.set_dirty();
     annotator.canvas.renderAll();
     console.log("MANUAL RESIZING");
   }
@@ -293,8 +293,7 @@ document.getElementById('field_id').addEventListener('input', (e) => {
     // Update track_ids of all boxes in track
     // TODO is it necessary for every box to have 'track_id' field?
     annotator.get_objects_by(range, selected[0]).forEach(r => {
-      r.set({track_id: track_id});
-      r.dirty = true; // To update box label
+      r.set({ track_id: track_id, dirty: true });
     });
 
     // Update keys in annotator.frames
