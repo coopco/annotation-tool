@@ -27,6 +27,10 @@ let field_id = document.getElementById('field_id');
 let p_state = document.getElementById('p_state');
 let p_state_bold = document.getElementById('p_state_bold');
 
+// TODO hack until I know what the acutal angle is supposed to be
+let drag_rotation_el = document.getElementById('drag_rotation');
+let drag_rotation = 180;
+
 // Plotting options
 let dot_mode = false;
 let nearby_mode = false;
@@ -562,6 +566,8 @@ export class Annotator {
   }
 
   mouse_down(o) {
+    // TODO hack until I know what the acutal angle is supposed to be
+    drag_rotation = Number(drag_rotation_el.value);
     dragged = false
     if (o.target) {
       return;
@@ -642,11 +648,38 @@ export class Annotator {
       }
 
       if (!default_dim) {
-        drag_rect.set({left: Math.min(orig_x, mouse_x),
-                       top: Math.min(orig_y, mouse_y),
-                       width: Math.abs(orig_x - pointer.x),
-                       height: Math.abs(orig_y - pointer.y)
-        });
+        // TODO kind of ugly, and potentially slow?
+        let prev_rect = this.get_nearest_box(this.current_frame, this.prev_selected_track);
+        let prev_box_radius2;
+        if (prev_rect) {
+          prev_box_radius2 = Math.max(prev_rect.width+15, prev_rect.height+15)**2;
+        }
+
+        if (this.prev_selected_track == drag_rect.track_id && prev_rect && distance2 < prev_box_radius2) {
+          let rads = Math.atan2(orig_y - mouse_y, orig_x - mouse_x);
+          let angle = rads*180/Math.PI + drag_rotation
+
+          drag_rect.set({
+            left: orig_x,
+            top: orig_y,
+            width: prev_rect.width,
+            height: prev_rect.height,
+            angle: angle,
+          });
+          let center = drag_rect.getCenterPoint();
+          drag_rect.set({
+            left: 2*orig_x - center.x,
+            top: 2*orig_y - center.y,
+          });
+        } else {
+          drag_rect.set({
+            left: Math.min(orig_x, mouse_x),
+            top: Math.min(orig_y, mouse_y),
+            width: Math.abs(orig_x - pointer.x),
+            height: Math.abs(orig_y - pointer.y),
+            angle: 0,
+          });
+        }
       }
       this.canvas.renderAll();
     }
@@ -686,6 +719,7 @@ export class Annotator {
         if (this.prev_selected_track == drag_rect.track_id) {
           let prev_rect = this.get_nearest_box(this.current_frame, this.prev_selected_track);
           if (prev_rect) {
+            // TODO replace using drag_rect.getCenterPoint()
             let prev_bbox = prev_rect.getBoundingRect();
             let prev_cx = prev_bbox.left + prev_bbox.width/2
             let prev_cy = prev_bbox.top + prev_bbox.height/2
@@ -705,7 +739,8 @@ export class Annotator {
             drag_rect.set({left: orig_x - w/2,
                            top: orig_y - h/2,
                            width: w,
-                           height: h
+                           height: h,
+                           angle: 0
             });
           }
         } else {
@@ -714,7 +749,8 @@ export class Annotator {
           drag_rect.set({left: orig_x - w/2,
                          top: orig_y - h/2,
                          width: w,
-                         height: h
+                         height: h,
+                         angle: 0,
           });
         }
       }

@@ -95,9 +95,12 @@
       <div class="controls">
         <div class="tools">
 
-        <p>(Ctrl/Shift)-click and drag to add new track, or add to previously selected track.</p>
-        <p>Mouse wheel to zoom in/out. Alt-click to pan the camera.</p>
-        <p id="p_state_bold" style="color: red">Previously selected track: None</p>
+          <p>(Ctrl/Shift)-click and drag to add new track, or add to previously selected track.</p>
+          <p>Mouse wheel to zoom in/out. Alt-click to pan the camera.</p>
+          <p id="p_state_bold" style="color: red">Previously selected track: None</p>
+          <!-- TODO temporary until i know what actual value is --> 
+          <label for="drag_rotation">Drag angle constant:</label>
+          <input id="drag_rotation" type="number" min="0" max="360" step="45" value="180">
           <div class="delete_buttons">
             <button id="btn_delete_tracks" title="Hotkey: d">Delete in all frames</button>
             <button id="btn_delete_boxes" title="Hotkey: x">Delete in current frame</button>
