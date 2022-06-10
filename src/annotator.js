@@ -366,6 +366,30 @@ export class Annotator {
                  .filter(Boolean); // Filters undefined
   }
 
+  get_nearest_box(frame_id, track_id) {
+    let box = this.frames[frame_id][track_id]
+    let prev_box;
+
+    for (let i = frame_id-1; i >= 0; i--) {
+      if (this.frames[i][track_id]) {
+        prev_box = this.frames[i][track_id]
+        break;
+      }
+    }
+
+    if (!prev_box) { // If not found in previous frame
+      for (let i = frame_id+1; i < this.num_frames; i++) {
+        if (this.frames[i][track_id]) {
+          prev_box = this.frames[i][track_id]
+          break;
+        }
+      }
+    }
+
+    // Null if no box found
+    return prev_box
+  }
+
   delete_objects_by(frame_ids, track_ids) {
     let combos = utils.cartesian_product(frame_ids, track_ids);
     // Fabric.js has drouble removing objects that are selected
@@ -659,13 +683,40 @@ export class Annotator {
 
     if ((o.e.ctrlKey || o.e.shiftKey)) {
       if (default_dim) {
-        let w = defaults['width']
-        let h = defaults['height']
-        drag_rect.set({left: orig_x - w/2,
-                       top: orig_y - h/2,
-                       width: w,
-                       height: h
-        });
+        if (this.prev_selected_track == drag_rect.track_id) {
+          let prev_rect = this.get_nearest_box(this.current_frame, this.prev_selected_track);
+          if (prev_rect) {
+            let prev_bbox = prev_rect.getBoundingRect();
+            let prev_cx = prev_bbox.left + prev_bbox.width/2
+            let prev_cy = prev_bbox.top + prev_bbox.height/2
+            let vx = prev_rect.left - prev_cx;
+            let vy = prev_rect.top - prev_cy;
+            drag_rect.set({
+              left: drag_rect.left + vx,
+              top: drag_rect.top + vy,
+              width: prev_rect.width,
+              height: prev_rect.height,
+              angle: prev_rect.angle,
+            });
+          } else {
+            // TODO repeated code
+            let w = defaults['width']
+            let h = defaults['height']
+            drag_rect.set({left: orig_x - w/2,
+                           top: orig_y - h/2,
+                           width: w,
+                           height: h
+            });
+          }
+        } else {
+          let w = defaults['width']
+          let h = defaults['height']
+          drag_rect.set({left: orig_x - w/2,
+                         top: orig_y - h/2,
+                         width: w,
+                         height: h
+          });
+        }
       }
 
       // Interpolate
