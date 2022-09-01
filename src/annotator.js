@@ -670,7 +670,7 @@ export class Annotator {
           prev_box_radius2 = Math.max(prev_rect.width+15, prev_rect.height+15)**2;
         }
 
-        if (this.prev_selected_track == drag_rect.track_id && prev_rect && distance2 < prev_box_radius2) {
+        if (this.prev_selected_track == drag_rect.track_id && prev_rect) { //&& distance2 < prev_box_radius2) {
           let rads = Math.atan2(orig_y - mouse_y, orig_x - mouse_x);
           let angle = rads*180/Math.PI + drag_rotation
 
