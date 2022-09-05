@@ -252,6 +252,17 @@ field_height.addEventListener('input', (e) => {
   update_size(width, height);
 })
 
+document.getElementById('btn_copy_size').addEventListener('click', (e) => {
+  let selected = annotator.get_selected_track_ids();
+
+  if (selected.length > 0) {
+    let width = annotator.tracks[selected[0]][annotator.current_frame]['width']
+    let height = annotator.tracks[selected[0]][annotator.current_frame]['height']
+    field_width.value = width
+    field_height.value = height
+  }
+})
+
 /*
 *  Options for interpolation
 */

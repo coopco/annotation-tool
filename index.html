@@ -98,9 +98,12 @@
           <p>(Ctrl/Shift)-click and drag to add new track, or add to previously selected track.</p>
           <p>Mouse wheel to zoom in/out. Alt-click to pan the camera.</p>
           <p id="p_state_bold" style="color: red">Previously selected track: None</p>
+          <input type="checkbox" id="chkbox_drag_rotate">Drag for rotation</button>
+          <br>
           <!-- TODO temporary until i know what actual value is --> 
           <label for="drag_rotation">Drag angle constant:</label>
           <input id="drag_rotation" type="number" min="0" max="360" step="45" value="270">
+
           <div class="delete_buttons">
             <button id="btn_delete_tracks" title="Hotkey: d">Delete in all frames</button>
             <button id="btn_delete_boxes" title="Hotkey: x">Delete in current frame</button>
@@ -119,7 +122,9 @@
           <label for="field_height">Box height:</label>
           <input id="field_height" type="number" placeholder="Height" step=5 size=6>
           <br>
-          <button id="btn_size_update">Update size</button>
+          <button id="btn_size_update">Apply size</button>
+          <button id="btn_copy_size">Copy size</button>
+          <br>
           <input type="checkbox" id="chkbox_interpolate_size">Apply to all frames</button>
         </div>
 

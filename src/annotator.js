@@ -23,13 +23,16 @@ let is_down, mouse_x, mouse_y, dragged;
 let drag_rect, orig_x, orig_y, default_dim; // For when drag-creating new boxes
 let field_width = document.getElementById('field_width');
 let field_height = document.getElementById('field_height');
+field_width.value = 75;
+field_height.value = 75;
 let field_id = document.getElementById('field_id');
 let p_state = document.getElementById('p_state');
 let p_state_bold = document.getElementById('p_state_bold');
 
 // TODO hack until I know what the acutal angle is supposed to be
 let drag_rotation_el = document.getElementById('drag_rotation');
-let drag_rotation = 180;
+let drag_rotation = 270;
+let chkbox_drag_rotate = document.getElementById('chkbox_drag_rotate');
 
 // Plotting options
 let dot_mode = false;
@@ -605,13 +608,24 @@ export class Annotator {
       let pointer = this.canvas.getPointer(o.e);
       orig_x = pointer.x;
       orig_y = pointer.y;
+      let drag_to_rotate = chkbox_drag_rotate.checked
+
       drag_rect = this.new_box(this.current_frame,
         this.get_new_track_id(), {
         left: orig_x,
         top: orig_y,
-        width: pointer.x-orig_x,
-        height: pointer.y-orig_y
+        width: drag_to_rotate ? parseFloat(field_width.value) : pointer.x-orig_x,
+        height: drag_to_rotate ? parseFloat(field_height.value) : pointer.y-orig_y,
       })
+
+      if (drag_to_rotate) {
+        let center = drag_rect.getCenterPoint();
+        drag_rect.set({
+          left: 2*orig_x - center.x,
+          top: 2*orig_y - center.y,
+        });
+      }
+
       this.canvas.setActiveObject(drag_rect);
     }
   }
@@ -670,15 +684,25 @@ export class Annotator {
           prev_box_radius2 = Math.max(prev_rect.width+15, prev_rect.height+15)**2;
         }
 
-        if (this.prev_selected_track == drag_rect.track_id && prev_rect) { //&& distance2 < prev_box_radius2) {
+        let drag_to_rotate = this.prev_selected_track == drag_rect.track_id
+        drag_to_rotate = drag_to_rotate && prev_rect
+        //drag_to_rotate = drag_to_rotate && distance2 < prev_box_radius2
+    
+        drag_to_rotate = chkbox_drag_rotate.checked
+
+        if (drag_to_rotate) {
+          // Drag for rotation
           let rads = Math.atan2(orig_y - mouse_y, orig_x - mouse_x);
           let angle = rads*180/Math.PI + drag_rotation
+
+          let width = prev_rect ? prev_rect.width : parseFloat(field_width.value);
+          let height = prev_rect ? prev_rect.height : parseFloat(field_height.value);
 
           drag_rect.set({
             left: orig_x,
             top: orig_y,
-            width: prev_rect.width,
-            height: prev_rect.height,
+            width: width,
+            height: height,
             angle: angle,
           });
           let center = drag_rect.getCenterPoint();
@@ -687,6 +711,7 @@ export class Annotator {
             top: 2*orig_y - center.y,
           });
         } else {
+          // Drag for size
           drag_rect.set({
             left: Math.min(orig_x, mouse_x),
             top: Math.min(orig_y, mouse_y),
@@ -848,8 +873,8 @@ export class Annotator {
       let id = selected[0];
       field_id.value = id;
       field_id.disabled = false;
-      field_width.value = this.tracks[id][this.current_frame]['width']
-      field_height.value = this.tracks[id][this.current_frame]['height']
+      //field_width.value = this.tracks[id][this.current_frame]['width']
+      //field_height.value = this.tracks[id][this.current_frame]['height']
     } else {
       // Disable track ID field
       field_id.disabled = true;
