@@ -575,6 +575,11 @@ const onChangeFile = (mediainfo) => {
   }
 }
 
-MediaInfo({ format: 'object' }, (mediainfo) => {
-  document.getElementById("videofile").addEventListener('change', () => onChangeFile(mediainfo))
+MediaInfo(
+  {
+    format: 'object',
+    locateFile: (path, prefix) => prefix + path, // Make sure WASM file is loaded from CDN location
+  }, 
+  (mediainfo) => {
+    document.getElementById("videofile").addEventListener('change', () => onChangeFile(mediainfo))
 })
