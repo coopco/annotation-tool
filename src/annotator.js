@@ -269,6 +269,8 @@ export class Annotator {
   }
 
   interpolate(box1, box2) {
+    this.canvas.discardActiveObject()
+
     let d_frames = box2.frame_id - box1.frame_id;
     if (d_frames < 2) {
       return;
