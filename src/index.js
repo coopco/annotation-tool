@@ -39,7 +39,7 @@ async function set_frame(frame_id) {
 
 async function play_video_callback() {
   // calculate id of current frame
-  let frame_id = (annotator.videoEl.currentTime * annotator.framerate) | 0
+  let frame_id = Math.min((annotator.videoEl.currentTime * annotator.framerate) | 0, annotator.num_frames-1)
   // TODO race
   //await annotator.set_frame(frame_id, false);
   let frame = annotator.frames[annotator.current_frame]
@@ -51,7 +51,17 @@ async function play_video_callback() {
   Object.keys(frame).forEach((id) => {
     frame[id].set({visible: true})
   })
+
   updateUI();
+
+  if (frame_id >= annotator.num_frames - 1) {
+    paused = true;
+    if (btn_play.innerHTML == "Play") {
+      btn_play.innerHTML = "Pause"
+    } else {
+      btn_play.innerHTML = "Play"
+    }
+  }
 
   if (paused) {
     // Are there left over threads?
