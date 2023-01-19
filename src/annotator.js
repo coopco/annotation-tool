@@ -289,7 +289,6 @@ export class Annotator {
     //console.log(step_top)
     //console.log(step_center_x)
     //console.log(step_center_y)
-    console.log(box1.left)
     //console.log(box1.top)
     for (let i = 1; i < d_frames; i++) {
       // Set initial (left, top) to center of final box,

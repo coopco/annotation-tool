@@ -203,6 +203,24 @@ document.getElementById('btn_delete_next').addEventListener('click', (e) => {
   console.log("DELETE");
 })
 
+document.getElementById('btn_delete_outside').addEventListener('click', (e) => {
+  let range = utils.range(0, annotator.num_frames-1, 1);
+  for (let id in annotator.get_track_ids()) {
+    id = parseInt(id) + 1;
+    for (let frame_id of range) {
+      let frame = annotator.frames[frame_id];
+      let box = frame[id]
+      if (box && (box.left > annotator.canvas.width || box.top > annotator.canvas.height)) {
+        annotator.delete_objects_by(frame_id, id)
+        console.log("DELETING " + id + " " + frame_id)
+      }
+    }
+  }
+
+  annotator.save_state();
+  console.log("DELETE OUTSIDE");
+})
+
 /*
 *  Merge track
 */
