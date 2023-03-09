@@ -279,39 +279,19 @@ export class Annotator {
     let step_top = (box2.top - box1.top) / d_frames;
     let step_width = (box2.width - box1.width) / d_frames;
     let step_height = (box2.height - box1.height) / d_frames;
-    let step_angle = (box2.angle - box1.angle) / d_frames;
-    let center1 = box1.getCenterPoint();
-    let center2 = box2.getCenterPoint();
-    let step_center_x = (center2.x - center1.x) / d_frames;
-    let step_center_y = (center2.y - center1.y) / d_frames;
-    let new_box, center;
-    //console.log(step_left)
-    //console.log(step_top)
-    //console.log(step_center_x)
-    //console.log(step_center_y)
-    //console.log(box1.top)
+    // Take the shortest path for rotation
+    let step_angle = (((box2.angle - box1.angle + 180) % 360) - 180) / d_frames;
+
+
     for (let i = 1; i < d_frames; i++) {
-      // Set initial (left, top) to center of final box,
-      // so we can rotate about center
-      //console.log("box1.left + step_left*i: " + (box1.left + step_left*i))
       let new_box = this.new_box(box1.frame_id+i, box1.track_id, {
-        //left: center1.x + step_center_x*i, 
-        //top: center1.y + step_center_y*i,
         left: box1.left + step_left*i,
         top: box1.top + step_top*i,
         width: box1.width + step_width*i,
         height: box1.height + step_height*i,
-        //angle: box1.angle + step_angle*i,
+        angle: box1.angle + step_angle*i,
         visible: false,
       });
-      center = new_box.getCenterPoint(); 
-      // Translate to center
-      //console.log(2*new_box.left - center.x)
-      //new_box.set({
-      //  left: 2*new_box.left - center.x,
-      //  top: 2*new_box.top - center.y,
-      //})
-      console.log(new_box.left);
     }
   }
 
