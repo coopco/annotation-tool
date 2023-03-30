@@ -269,6 +269,8 @@ export class Annotator {
   }
 
   interpolate(box1, box2) {
+    // Deselect before interpolating to avoid undefined coords bug
+    let selected_objects = this.canvas.getActiveObjects()
     this.canvas.discardActiveObject()
 
     let d_frames = box2.frame_id - box1.frame_id;
@@ -293,6 +295,12 @@ export class Annotator {
         visible: false,
       });
     }
+
+    let sel = new fabric.ActiveSelection(selected_objects, {
+          canvas: this.canvas,
+        });
+    this.canvas.setActiveObject(sel);
+    //this.canvas.requestRenderAll();
   }
 
   interpolate_track(track_id) {
