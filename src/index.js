@@ -41,7 +41,7 @@ function updateUI() {
 }
 
 async function set_frame(frame_id) {
-  await annotator.set_frame(frame_id);
+  annotator.set_frame(frame_id);
   updateUI();
 }
 
