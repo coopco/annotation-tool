@@ -20,6 +20,14 @@ document.getElementById('chkbox_mark_mode').checked = false;
 document.getElementById('chkbox_show_mode').checked = false;
 document.getElementById('chkbox_inter_mode').checked = false;
 
+// TODO put this somewhere else
+// For when checkbox already checked on page load
+if ($("#chkbox_per_pixel").is(":checked")) {
+  annotator.canvas.set({'perPixelTargetFind': true})
+} else {
+  annotator.canvas.set({'perPixelTargetFind': false})
+}
+
 updateUI();
 
 function updateUI() {
@@ -406,6 +414,14 @@ document.getElementById('btn_clear_marked').addEventListener('click', (e) => {
   annotator.update_UI();
 });
 
+document.getElementById('chkbox_per_pixel').addEventListener('change', (e) => {
+  if ($("#chkbox_per_pixel").is(":checked")) {
+    annotator.canvas.set({'perPixelTargetFind': true})
+  } else {
+    annotator.canvas.set({'perPixelTargetFind': false})
+  }
+})
+
 document.getElementById('chkbox_dot_mode').addEventListener('change', (e) => {
   annotator.toggle_dot_mode()
 })
@@ -480,6 +496,15 @@ document.addEventListener('keydown', async function (e) {
     case 65: // a
       if (annotator.current_frame <= 0) return;
       set_frame(annotator.current_frame - 1);
+      break;
+    case 66: // b
+      // TODO kind of ugly
+      $("#chkbox_per_pixel").prop("checked", !$("#chkbox_per_pixel").prop("checked"));
+      if ($("#chkbox_per_pixel").is(":checked")) {
+        annotator.canvas.set({'perPixelTargetFind': true})
+      } else {
+        annotator.canvas.set({'perPixelTargetFind': false})
+      }
       break;
     case 77: // m
       ////annotator.markSelected()
