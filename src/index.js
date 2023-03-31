@@ -28,6 +28,12 @@ if ($("#chkbox_per_pixel").is(":checked")) {
   annotator.canvas.set({'perPixelTargetFind': false})
 }
 
+if ($("#chkbox_add_box").is(":checked")) {
+  annotator.set_add_box_need_modifier(false)
+} else {
+  annotator.set_add_box_need_modifier(true)
+}
+
 updateUI();
 
 function updateUI() {
@@ -422,6 +428,14 @@ document.getElementById('chkbox_per_pixel').addEventListener('change', (e) => {
   }
 })
 
+document.getElementById('chkbox_add_box').addEventListener('change', (e) => {
+  if ($("#chkbox_add_box").is(":checked")) {
+    annotator.set_add_box_need_modifier(false)
+  } else {
+    annotator.set_add_box_need_modifier(true)
+  }
+})
+
 document.getElementById('chkbox_dot_mode').addEventListener('change', (e) => {
   annotator.toggle_dot_mode()
 })
@@ -504,6 +518,15 @@ document.addEventListener('keydown', async function (e) {
         annotator.canvas.set({'perPixelTargetFind': true})
       } else {
         annotator.canvas.set({'perPixelTargetFind': false})
+      }
+      break;
+    case 76: // l
+      // TODO kind of ugly
+      $("#chkbox_add_box").prop("checked", !$("#chkbox_add_box").prop("checked"));
+      if ($("#chkbox_add_box").is(":checked")) {
+        annotator.set_add_box_need_modifier(false)
+      } else {
+        annotator.set_add_box_need_modifier(true)
       }
       break;
     case 77: // m

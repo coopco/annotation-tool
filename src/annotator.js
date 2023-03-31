@@ -40,6 +40,7 @@ let nearby_mode = false;
 let nearby_distance = 50;
 let mark_mode = false;
 let interpolation = false;
+let add_box_need_modifier = true;
 
 var Box = fabric.util.createClass(fabric.Rect, {
   type: 'box',
@@ -583,6 +584,10 @@ export class Annotator {
     interpolation = !interpolation;
   }
 
+  set_add_box_need_modifier(bool) {
+    add_box_need_modifier = bool;
+  }
+
   mouse_down(o) {
     // TODO hack until I know what the acutal angle is supposed to be
     drag_rotation = Number(drag_rotation_el.value);
@@ -602,7 +607,7 @@ export class Annotator {
       return;
     }
 
-    if (o.e.ctrlKey || o.e.shiftKey) {
+    if (o.e.ctrlKey || o.e.shiftKey || !add_box_need_modifier) {
       this.canvas.selection = false;
       default_dim = true
       let pointer = this.canvas.getPointer(o.e);
@@ -670,7 +675,7 @@ export class Annotator {
     mouse_x = pointer.x
     mouse_y = pointer.y
 
-    if (o.e.ctrlKey || o.e.shiftKey) {
+    if (o.e.ctrlKey || o.e.shiftKey || !add_box_need_modifier) {
       let distance2 = Math.abs(orig_x - mouse_x)**2 + Math.abs(orig_y - mouse_y)**2
       if (distance2 > 200) {
         default_dim = false
@@ -754,7 +759,7 @@ export class Annotator {
 
     is_down = false;
 
-    if ((o.e.ctrlKey || o.e.shiftKey)) {
+    if (o.e.ctrlKey || o.e.shiftKey || !add_box_need_modifier) {
       if (default_dim) {
         if (this.prev_selected_track == drag_rect.track_id) {
           let prev_rect = this.get_nearest_box(this.current_frame, this.prev_selected_track);
