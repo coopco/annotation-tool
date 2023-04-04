@@ -586,6 +586,15 @@ export class Annotator {
 
   set_add_box_need_modifier(bool) {
     add_box_need_modifier = bool;
+    // Disable selection
+    // TODO probably rename this function if it also disabled selection
+    this.canvas.selection = bool
+    this.canvas.forEachObject(o => {
+      o.selectable = bool;
+      o.evented = bool;
+    })
+    defaults.selectable = bool;
+    defaults.evented = bool;
   }
 
   mouse_down(o) {
@@ -631,7 +640,9 @@ export class Annotator {
         });
       }
 
-      this.canvas.setActiveObject(drag_rect);
+      if (defaults.selectable) {
+        this.canvas.setActiveObject(drag_rect);
+      }
     }
   }
 
