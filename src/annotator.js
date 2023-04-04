@@ -640,9 +640,9 @@ export class Annotator {
         });
       }
 
-      if (defaults.selectable) {
-        this.canvas.setActiveObject(drag_rect);
-      }
+      //if (defaults.selectable) {
+      this.canvas.setActiveObject(drag_rect);
+      //}
     }
   }
 
